@@ -49,7 +49,7 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
           <X size={18} />
         </button>
 
-        <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-8 pr-10">{td(title)}</h3>
+        <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-8 pr-10">{title}</h3>
 
         <div className="space-y-6">
           {stageOptions && stageOptions.length > 1 && (
@@ -90,11 +90,11 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
             )}
             {isMasterPick ? (
               <p className="text-[11px] text-violet-600 font-bold px-1 flex items-center gap-1.5 bg-violet-50 border border-violet-100 rounded-xl px-3 py-2">
-                <UserCog size={13} className="flex-shrink-0" /> {t('This is a Master Tailor — they handle every stage of the order themselves, and stay the default going forward.', 'یہ ماسٹر درزی ہیں — آرڈر کا ہر مرحلہ خود سنبھالیں گے، آگے بھی یہی ورکر ڈیفالٹ رہے گا۔')}
+                <UserCog size={13} className="flex-shrink-0" /> {t('This is a Master Tailor — they will handle every stage of this order themselves, and will stay the default worker for later stages too.', 'یہ ماسٹر درزی ہے — آرڈر کی ہر مرحلہ خود سنبھالے گا، آگے بھی یہی ورکر ڈیفالٹ رہے گا۔')}
               </p>
             ) : stage && (
               <p className="text-[11px] text-slate-400 font-medium px-1 flex items-center gap-1">
-                <Sparkles size={11} className="text-primary" /> {t(`★ marked workers best fit the ${stage} stage`, `★ نشان زدہ ورکرز ${STAGE_URDU_LABELS[stage] || stage} مرحلے کے لیے موزوں ترین ہیں`)}
+                <Sparkles size={11} className="text-primary" /> {t(`★ marked workers best fit the ${stage} stage`, `★ نشان زدہ ورکرز ${STAGE_URDU_LABELS[stage] || stage} کے لیے موزوں ترین ہیں`)}
               </p>
             )}
           </div>
@@ -106,7 +106,7 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
             disabled={confirming || !workerId}
             className="primary-btn flex-1 py-4 rounded-2xl shadow-xl shadow-primary/30 disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {confirming ? <Loader2 className="animate-spin" size={18} /> : t('Yes, Confirm', 'ہاں، تصدیق کریں')}
+            {confirming ? <Loader2 className="animate-spin" size={18} /> : t('Yes, Confirm', 'ہاں')}
           </button>
           <button
             onClick={onCancel}

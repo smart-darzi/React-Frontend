@@ -1,32 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --color-primary: #0E606E;
   --color-primary-dark: #0A4A55;
+  --color-primary-light: #E7F1F2;
   --color-glass: rgba(255, 255, 255, 0.7);
+  /* 'Noto Nastaliq Urdu' is listed as a fallback (not the primary font) in
+     both stacks. Urdu text throughout the app is almost always mixed inline
+     with English in the same string (e.g. "Order Flow / آرڈر کا بہاؤ"), so
+     rather than hunting down every Urdu span individually, the browser is
+     left to do per-character font matching: Latin letters keep rendering in
+     Manrope/Inter (unchanged), and any Urdu/Arabic-script characters that
+     Manrope/Inter don't cover automatically fall through to Noto Nastaliq
+     Urdu. This covers every Urdu label, badge, and dir="rtl" field site-wide
+     without needing a separate class on each one. */
+  --font-display: 'Manrope', 'Inter', 'Noto Nastaliq Urdu', system-ui, sans-serif;
+  --font-body: 'Inter', 'Noto Nastaliq Urdu', system-ui, -apple-system, sans-serif;
+}
+
+/* Urdu script renders noticeably smaller than Latin text at the same
+   font-size in Noto Nastaliq Urdu's calligraphic style, and needs a touch
+   more line-height to keep its diacritics from clipping. This nudges any
+   element explicitly marked as Urdu (dir="rtl", used throughout for pure-
+   Urdu fields like Design's Urdu Name) without affecting the mixed-language
+   strings, which stay at their normal size. */
+[dir="rtl"] {
+  font-family: 'Noto Nastaliq Urdu', var(--font-body);
+  line-height: 1.9;
 }
 
 :root {
-  background: #f8fafc;
+  background: #F6F4EF;
   color: #1e293b;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
+/* Tailwind's tracking-wide/wider/widest utilities (used all over the app on
+   bilingual labels — nav items, section titles, status badges, form labels
+   like "Name / نام") add letter-spacing between every character. That's a
+   nice touch for Latin/English text, but Urdu is a cursive, letter-joining
+   script: forcing gaps between characters breaks the joins Nastaliq relies
+   on, which is why words like "ڈیش بورڈ" were rendering as disconnected,
+   broken-looking fragments instead of proper joined words. Since these
+   utilities are so often applied to strings that mix English and Urdu in
+   one element, the safe fix is to neutralize the letter-spacing they add
+   app-wide rather than tracking down every mixed-language element
+   individually. English text stays perfectly readable without the extra
+   spacing; Urdu text now joins correctly. */
+.tracking-wide,
+.tracking-wider,
+.tracking-widest {
+  letter-spacing: normal;
+}
+
+/* `truncate` (overflow-hidden + nowrap + ellipsis) is used all over the app
+   for single-line order/customer/design titles that mix English and Urdu,
+   e.g. "Shalwar Qamees / شلوار قمیض". Nastaliq's letters and loops are
+   taller than the tight line-height Tailwind's small text sizes ship with,
+   so the overflow-hidden box was literally clipping the tops of Urdu
+   glyphs — words looked cut off/incomplete. Truncate only needs to clip
+   horizontally (that's what text-overflow: ellipsis does); giving the line
+   more vertical room removes the accidental vertical clipping without
+   changing the horizontal truncation behavior at all. */
+.truncate {
+  line-height: 1.7;
+}
+
+/* App-wide scrollbar removal — the page still scrolls normally with the
+   mouse wheel, touch, or keyboard, this just hides the visible track/thumb
+   the browser draws down the right edge of the window. */
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/new Edge */
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Brand-colored text selection, instead of the default OS blue — small
+   detail, but it's the kind of thing that makes an app feel considered. */
+::selection {
+  background: rgba(14, 96, 110, 0.18);
+  color: #0A4A55;
+}
+
+/* A refined, brand-tinted focus ring for keyboard navigation, used in place
+   of the default browser outline wherever a component doesn't already set
+   its own focus treatment. */
+:focus-visible {
+  outline: 2px solid rgba(14, 96, 110, 0.45);
+  outline-offset: 2px;
+}
+
+/* Faint woven-canvas texture used on portal backgrounds — a nod to the
+   shop's own material (fabric weave), not a generic dot/noise pattern. */
+.fabric-bg {
+  background-color: #F6F4EF;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(14,96,110,0.035) 0px, rgba(14,96,110,0.035) 1px, transparent 1px, transparent 14px),
+    repeating-linear-gradient(-45deg, rgba(14,96,110,0.035) 0px, rgba(14,96,110,0.035) 1px, transparent 1px, transparent 14px);
+}
+
+/* A dashed "stitch" line — literal thread-stitch motif, used as the
+   connector in status trackers instead of a plain solid rule. */
+.stitch-line {
+  background-image: linear-gradient(to right, currentColor 55%, transparent 45%);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  background-position: center;
+  height: 2px;
+}
+
+/* Glass-card — the app's signature surface. Softened, layered shadow (a
+   tight low-opacity layer for definition + a broad tinted layer for depth)
+   reads as more considered than a single flat drop-shadow, and the subtle
+   inset top highlight gives the glass an actual sheen instead of just being
+   a translucent rectangle. */
 .glass-card {
-  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
+  @apply bg-white/70 backdrop-blur-xl border border-white/60;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -8px rgba(14, 96, 110, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Optional hover-lift companion class for interactive cards — consistent
+   "settle" motion instead of every page inventing its own hover transform. */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 20px 40px -12px rgba(14, 96, 110, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .primary-btn {
-  @apply bg-primary hover:bg-primary-dark text-white font-bold transition-all disabled:opacity-50;
+  @apply bg-primary hover:bg-primary-dark text-white font-bold transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none;
+  box-shadow: 0 8px 20px -6px rgba(14, 96, 110, 0.45);
+}
+.primary-btn:hover:not(:disabled) {
+  box-shadow: 0 10px 26px -6px rgba(14, 96, 110, 0.55);
+  transform: translateY(-1px);
+}
+.primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px -4px rgba(14, 96, 110, 0.5);
 }
 
 .input-field {
-  @apply w-full px-5 py-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all;
+  @apply w-full px-5 py-4 bg-white/60 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all duration-200;
+  /* Mobile Safari/Chrome auto-zoom the whole page in when a focused input's
+     font-size is under 16px, then zoom back out on blur — the "zoom in/out"
+     jump reported on the Block Report modal's textarea. Pinning this to
+     16px stops that entirely, on every input/textarea using this class. */
+  font-size: 16px;
+}
+.input-field:focus {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Small uppercase status/label pill — used anywhere a badge previously used
+   ad-hoc padding/rounding per page. Colors are still set per-usage via
+   Tailwind background/text utility classes; this just standardizes shape. */
+.pill {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border;
+}
+
+/* Scrollbar-hide — keeps a container scrollable (for narrow screens where a
+   wide table still needs to scroll horizontally) but hides the native
+   scrollbar track/thumb, since a raw unstyled browser scrollbar rendered as
+   a stray gray bar/line under these rounded, glassy cards. */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/new Edge */
 }
 
 /* Custom scrollbar */
@@ -37,9 +208,9 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(14, 96, 110, 0.1);
+  background: rgba(14, 96, 110, 0.15);
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(14, 96, 110, 0.2);
+  background: rgba(14, 96, 110, 0.28);
 }

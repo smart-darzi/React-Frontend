@@ -41,9 +41,9 @@ export const validatePassword = (password) => {
 // so the form catches it immediately instead of a confusing save-time error.
 export const validateDesignNumber = (value, { required = false } = {}) => {
   const trimmed = String(value ?? '').trim();
-  if (!trimmed) return required ? 'Design number is required / ڈیزائن نمبر درکار ہے' : null;
+  if (!trimmed) return required ? 'Design number zaroori hai' : null;
   if (!/^\d+$/.test(trimmed)) {
-    return 'Numbers only, no letters / صرف نمبر لکھیں، حروف نہیں';
+    return 'Sirf numbers likhein, letters allowed nahi hain / Numbers only, no letters';
   }
   return null;
 };

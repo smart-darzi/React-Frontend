@@ -8,7 +8,7 @@ import {
 import {
   getAdminStatusLabel, getAdminStatusColor,
   getWorkerStatus, getWorkerStatusLabel, getWorkerStatusColor,
-  STAGE_URDU_LABELS,
+  STAGE_URDU_LABELS, translateLegacyHistoryLine,
 } from '../utils/stages';
 import DesignDetailModal from './DesignDetailModal';
 import { useLanguage } from '../context/LanguageContext';
@@ -27,16 +27,16 @@ const HISTORY_META = {
   delivered:     { icon: PackageCheck,         tint: 'bg-purple-100 text-purple-600' },
 };
 
-const Row = ({ label, value, fallback }) => (
+const Row = ({ label, value, naLabel }) => (
   <div className="bg-slate-50 p-4 rounded-2xl">
     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-    <p className="font-bold text-slate-700 text-sm">{value || fallback}</p>
+    <p className="font-bold text-slate-700 text-sm">{value || naLabel}</p>
   </div>
 );
 
 const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, deleting, designs = [] }) => {
+  const { t, td, tdLog, language } = useLanguage();
   const [viewingDesign, setViewingDesign] = useState(null);
-  const { t, td, tdLog } = useLanguage();
 
   if (!order) return null;
 
@@ -46,8 +46,6 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
   const linkedDesign = order.selectedDesignId
     ? designs.find(d => d._id === order.selectedDesignId)
     : null;
-
-  const stageLabel = (stage) => (stage ? t(stage, STAGE_URDU_LABELS[stage] || stage) : stage);
 
   return (
     <div
@@ -122,17 +120,17 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
         {/* Styling Section */}
         <div className="space-y-4 mb-6">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers size={14} /> {t('Dress Styling', 'ملبوس کی طرز')}
+            <Layers size={14} /> {t('Dress Styling', 'ڈریس اسٹائلنگ')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Row label={t('Order Type', 'آرڈر کی قسم')}       value={td(order.orderType)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Neck Style', 'گلا')}                value={td(order.neckStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Cuff Style', 'کف')}                 value={td(order.cuffStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Lap Style', 'لیپ')}                 value={td(order.lapStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Pant Style', 'پینٹ کی طرز')}        value={td(order.pantStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Pocket Style', 'جیب کی طرز')}       value={td(order.pocketStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Button Style', 'بٹن کی طرز')}       value={td(order.buttonStyle)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Elastic', 'الاسٹک')}                 value={td(order.elastic)} fallback={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Order Type', 'آرڈر کی قسم')}    value={td(order.orderType)}    naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Neck Style', 'گلا')}    value={td(order.neckStyle)}    naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Cuff Style', 'کف')}    value={td(order.cuffStyle)}    naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Lap Style', 'لیپ')}     value={td(order.lapStyle)}     naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Pant Style', 'پینٹ')}    value={td(order.pantStyle)}    naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Pocket Style', 'جیب')}  value={td(order.pocketStyle)}  naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Button Style', 'بٹن')}  value={td(order.buttonStyle)}  naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Elastic', 'لاسٹک')}       value={td(order.elastic)}       naLabel={t('N/A', 'دستیاب نہیں')} />
           </div>
         </div>
 
@@ -142,17 +140,17 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
             <ClipboardList size={14} /> {t('Embroidery & Reference', 'کڑھائی اور حوالہ')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Row label={t('Embroidery', 'کڑھائی')}             value={td(order.embroidery)} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Embroidery Style', 'کڑھائی کی طرز')} value={td(order.style)} fallback={t('N/A', 'دستیاب نہیں')} />      {/* ✅ correct field name */}
-            <Row label={t('Book Number', 'بک نمبر')}           value={order.bookNumber} fallback={t('N/A', 'دستیاب نہیں')} />
-            <Row label={t('Design Number', 'ڈیزائن نمبر')}     value={order.designNumber} fallback={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Embroidery', 'کڑھائی')}       value={td(order.embroidery)} naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Embroidery Style', 'کڑھائی کا سٹائل')} value={td(order.style)} naLabel={t('N/A', 'دستیاب نہیں')} />      {/* ✅ correct field name */}
+            <Row label={t('Book Number', 'کتاب کا نمبر')}      value={order.bookNumber} naLabel={t('N/A', 'دستیاب نہیں')} />
+            <Row label={t('Design Number', 'ڈیزائن نمبر')}    value={order.designNumber} naLabel={t('N/A', 'دستیاب نہیں')} />
           </div>
         </div>
 
         {order.selectedDesignImage && (
           <div className="space-y-4 mt-6">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Layers size={14} /> {t('Catalog Design', 'کیٹلاگ ڈیزائن')}
+              <Layers size={14} /> Catalog Design / کیٹلاگ ڈیزائن
             </h3>
             {(() => {
               const Wrapper = linkedDesign ? 'button' : 'div';
@@ -164,10 +162,10 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
                 >
                   <img src={order.selectedDesignImage} alt={order.selectedDesignName || 'Design'} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-black text-slate-800 uppercase truncate">{td(order.selectedDesignName)}</p>
+                    <p className="font-black text-slate-800 uppercase truncate">{order.selectedDesignName}</p>
                     {linkedDesign && (
                       <p className="text-[11px] font-bold text-primary flex items-center gap-1 mt-1">
-                        <Maximize2 size={11} /> {t('View full design', 'پوری تفصیل دیکھیں')}
+                        <Maximize2 size={11} /> View full design / پوری تفصیل دیکھیں
                       </p>
                     )}
                   </div>
@@ -187,20 +185,19 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
           const timeline = order.orderHistory?.length
             ? [...order.orderHistory].reverse()
             : (order.stageHistory || [])
-                .map(h => ({
-                  type: 'status_change',
-                  description: h.workerName
-                    ? t(`${h.workerName} assigned to ${stageLabel(h.stage)}`, `${h.workerName} کو ${stageLabel(h.stage)} کے لیے تفویض کیا گیا`)
-                    : stageLabel(h.stage),
-                  by: 'Admin',
-                  at: h.at,
-                }))
+                .map(h => {
+                  const stageUr = STAGE_URDU_LABELS[h.stage] || h.stage;
+                  const description = h.workerName
+                    ? `${h.workerName} کو ${stageUr} کے لیے تفویض کیا گیا / ${h.workerName} assigned to ${h.stage}`
+                    : `${stageUr} / ${h.stage}`;
+                  return { type: 'status_change', description, by: 'Admin', at: h.at };
+                })
                 .reverse();
           if (timeline.length === 0) return null;
           return (
             <div className="space-y-4 mt-8 pt-8 border-t border-slate-100">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <History size={14} /> {t('Order History', 'آرڈر کی تاریخ')}
+                <History size={14} /> Order History / آرڈر کی تاریخ
               </h3>
               <div className="space-y-3">
                 {timeline.map((entry, i) => {
@@ -212,9 +209,9 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
                         <Icon size={14} />
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="font-bold text-slate-700 text-sm leading-snug">{tdLog(entry.description)}</p>
+                        <p className="font-bold text-slate-700 text-sm leading-snug">{tdLog(translateLegacyHistoryLine(entry.description))}</p>
                         <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
-                          <Clock size={10} /> {entry.at ? new Date(entry.at).toLocaleString() : t('N/A', 'دستیاب نہیں')}
+                          <Clock size={10} /> {entry.at ? new Date(entry.at).toLocaleString() : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -231,7 +228,7 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
               onClick={() => onEdit(order)}
               className="flex-1 flex items-center justify-center gap-3 primary-btn py-4 rounded-2xl shadow-lg shadow-primary/20"
             >
-              <Pencil size={18} /> {t('Edit Order', 'آرڈر میں تبدیلی')}
+              <Pencil size={18} /> Edit Order / آرڈر میں تبدیلی
             </button>
           )}
           {onDelete && (
@@ -240,7 +237,7 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
               disabled={deleting}
               className="flex-1 flex items-center justify-center gap-3 bg-red-50 text-red-500 font-bold py-4 rounded-2xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
             >
-              {deleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />} {t('Delete Order', 'حذف کریں')}
+              {deleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />} Delete Order / حذف کریں
             </button>
           )}
         </div>

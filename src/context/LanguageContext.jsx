@@ -51,21 +51,21 @@ export const LanguageProvider = ({ children }) => {
     return language === 'ur' ? ur.trim() : en.trim();
   };
 
-  // `tdLog(str)` — same idea as `td`, but for the backend-generated audit
-  // log lines (Order History, "Admin sent guidance", etc.). Those are
-  // written as "اردو phrase / clean English phrase" — the OPPOSITE order
-  // from every other bilingual string in this app (which is always
-  // "English / اردو"). Using `td` on a log line would pick the wrong half
-  // for each language, so this picks from the correct side for these
-  // specifically. Falls back to the original string if there's no " / "
-  // separator to split on.
+  // `tdLog(str)` — for order-history / activity-log lines saved by the
+  // backend as a single combined "<Urdu line> / <English line>" string
+  // (see backend/controllers/order.controller.js's bilingualLog helper).
+  // Note the order is flipped from td() above: history lines are written
+  // Urdu-first, English-second. Picks out just the half that matches the
+  // current language. Old orders created before this convention existed
+  // may have a description with no " / " separator at all (a plain
+  // Roman-Urdu/English sentence saved directly) — those are returned
+  // unchanged since there's nothing to split.
   const tdLog = (str) => {
     if (typeof str !== 'string') return str;
-    const idx = str.lastIndexOf(' / ');
-    if (idx === -1) return str;
-    const first = str.slice(0, idx).trim();
-    const second = str.slice(idx + 3).trim();
-    return language === 'ur' ? first : second;
+    const parts = str.split(' / ');
+    if (parts.length !== 2) return str;
+    const [ur, en] = parts;
+    return language === 'ur' ? ur.trim() : en.trim();
   };
 
   return (
