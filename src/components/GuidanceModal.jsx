@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { MessageSquareWarning, Send, Loader2, OctagonAlert } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { STAGE_URDU_LABELS } from '../utils/stages';
 
 // A few ready-made, professional starting points — the admin can tap one
 // to drop it straight into the box and tweak it, instead of always typing
@@ -27,8 +26,8 @@ const QUICK_TEMPLATES = [
 
 // Usage: <GuidanceModal order={order} onSend={fn} onCancel={fn} sending={bool} />
 const GuidanceModal = ({ order, onSend, onCancel, sending = false }) => {
-  const [text, setText] = useState(order?.adminGuidance || '');
   const { t } = useLanguage();
+  const [text, setText] = useState(order?.adminGuidance || '');
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -48,22 +47,19 @@ const GuidanceModal = ({ order, onSend, onCancel, sending = false }) => {
           <MessageSquareWarning size={28} />
         </div>
         <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">
-          {t('Send Guidelines to Worker', 'ورکر کو رہنمائی بھیجیں')}
+          {t('Send Guidelines to Worker', 'رہنمائی بھیجیں')}
         </h3>
         <p className="text-slate-500 font-medium mb-4">
-          {t(
-            `${order?.assignedWorkerName || 'Worker'} reported a block at ${order?.workStage ? (t(order.workStage, STAGE_URDU_LABELS[order.workStage] || order.workStage)) : ''} — write what they should do next below.`,
-            `${order?.assignedWorkerName || 'ورکر'} نے ${order?.workStage ? (STAGE_URDU_LABELS[order.workStage] || order.workStage) : ''} پر رکاوٹ کی رپورٹ دی ہے — نیچے لکھیں کہ انہیں آگے کیا کرنا ہے۔`
-          )}
+          {order?.assignedWorkerName || 'Worker'} ne <span className="font-bold">{order?.workStage}</span> par rukawat report ki hai — unhein aage kya karna hai, yahan likh dein.
         </p>
 
         {order?.workerWantsGuidance ? (
           <p className="text-xs text-amber-600 font-bold mb-4 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl">
-            {t('Worker has requested guidance — they can\'t resume or complete the work until you send it.', 'ورکر نے رہنمائی طلب کی ہے — جب تک آپ نہیں بھیجیں گے، وہ کام دوبارہ شروع یا مکمل نہیں کر سکے گا۔')}
+            Worker ne guidelines mangi hain — jab tak aap nahi bhejenge, wo resume/complete nahi kar sakega.
           </p>
         ) : (
           <p className="text-xs text-slate-400 mb-4">
-            {t('Worker did not request guidance (they can resume on their own) — you can still send help if you\'d like.', 'ورکر نے رہنمائی طلب نہیں کی (وہ خود دوبارہ شروع کر سکتا ہے) — چاہیں تو پھر بھی مدد بھیج سکتے ہیں۔')}
+            Worker ne guidelines nahi mangi (khud resume kar sakta hai) — chahen to phir bhi madad bhej sakte hain.
           </p>
         )}
 
@@ -75,14 +71,14 @@ const GuidanceModal = ({ order, onSend, onCancel, sending = false }) => {
         )}
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {QUICK_TEMPLATES.map((t) => (
+          {QUICK_TEMPLATES.map((tpl) => (
             <button
-              key={t.label}
+              key={tpl.label}
               type="button"
-              onClick={() => setText(t.text)}
+              onClick={() => setText(tpl.text)}
               className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition-all"
             >
-              {t.label}
+              {tpl.label}
             </button>
           ))}
         </div>
@@ -102,7 +98,7 @@ const GuidanceModal = ({ order, onSend, onCancel, sending = false }) => {
             disabled={sending || !text.trim()}
             className="flex-1 py-4 rounded-2xl bg-primary hover:bg-primary-dark text-white font-black shadow-xl shadow-primary/30 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {sending ? <Loader2 className="animate-spin" size={18} /> : <><Send size={18} /> {t('Send Guidelines', 'رہنمائی بھیجیں')}</>}
+            {sending ? <Loader2 className="animate-spin" size={18} /> : <><Send size={18} /> {t('Send Guidelines', 'بھیج دیں')}</>}
           </button>
           <button
             onClick={onCancel}

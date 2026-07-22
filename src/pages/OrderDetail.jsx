@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLocalState } from '../context/useLocalState';
+import { useLanguage } from '../context/LanguageContext';
 import Layout from '../components/Layout';
 import DesignDetailModal from '../components/DesignDetailModal';
 import {
@@ -13,6 +14,7 @@ import {
 import {
   getAdminStatusLabel, getAdminStatusColor,
   getWorkerStatus, getWorkerStatusLabel, getWorkerStatusColor,
+  STAGE_URDU_LABELS, translateLegacyHistoryLine,
 } from '../utils/stages';
 
 // Icon + tint per orderHistory event type — same treatment as the old
@@ -69,16 +71,18 @@ const filterTimelineForWorker = (timeline, workerName) => {
 // chrome (sidebar vs standalone header) differs below.
 const OrderDetailBody = ({ order, customerName, onEdit, isWorker, workerName, designs = [] }) => {
   const [viewingDesign, setViewingDesign] = useState(null);
+  const { tdLog } = useLanguage();
 
   let timeline = order.orderHistory?.length
     ? [...order.orderHistory].reverse()
     : (order.stageHistory || [])
-        .map(h => ({
-          type: 'status_change',
-          description: h.workerName ? `${h.workerName} ko ${h.stage} ke liye assign kiya gaya` : h.stage,
-          by: 'Admin',
-          at: h.at,
-        }))
+        .map(h => {
+          const stageUr = STAGE_URDU_LABELS[h.stage] || h.stage;
+          const description = h.workerName
+            ? `${h.workerName} کو ${stageUr} کے لیے تفویض کیا گیا / ${h.workerName} assigned to ${h.stage}`
+            : `${stageUr} / ${h.stage}`;
+          return { type: 'status_change', description, by: 'Admin', at: h.at };
+        })
         .reverse();
 
   // ✅ Only ever restricts the WORKER's own view — Admin (and Customer) keep
@@ -222,7 +226,7 @@ const OrderDetailBody = ({ order, customerName, onEdit, isWorker, workerName, de
                     <Icon size={14} />
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="font-bold text-slate-700 text-sm leading-snug">{entry.description}</p>
+                    <p className="font-bold text-slate-700 text-sm leading-snug">{tdLog(translateLegacyHistoryLine(entry.description))}</p>
                     <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
                       <Clock size={10} /> {entry.at ? new Date(entry.at).toLocaleString() : 'N/A'}
                     </p>

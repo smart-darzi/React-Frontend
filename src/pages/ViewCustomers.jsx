@@ -1,105 +1,168 @@
-import React, { useState } from 'react';
-import { useLocalState } from '../context/LocalStateContext';
+import React, { useState, useEffect } from 'react';
+import { useLocalState } from '../context/useLocalState';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Phone, MapPin, Eye, Trash2, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, Phone, ArrowRight, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { isDigitsOnly, matchesPhoneSearch, splitPhoneMatch } from '../utils/phoneSearch';
+import { matchesNameSearch, sortByNameMatch, highlightNameMatch } from '../utils/nameSearch';
+import { useLanguage } from '../context/LanguageContext';
+
+// Highlights the matched portion of a name so similarly-named customers
+// (e.g. "Tahir" vs "Amina Tahir") are easy to tell apart in results.
+const HighlightedName = ({ name, term }) => (
+  <>
+    {highlightNameMatch(name, term).map((seg, i) =>
+      seg.match
+        ? <span key={i} className="bg-yellow-200 text-slate-800 rounded px-0.5">{seg.text}</span>
+        : <span key={i}>{seg.text}</span>
+    )}
+  </>
+);
+
+// Shown one row (5 cards) at a time instead of the whole directory dumping
+// onto the page at once — Prev/Next below the grid pages through the rest.
+const PAGE_SIZE = 5;
 
 const ViewCustomers = () => {
-  const { customers, deleteCustomer, loading } = useLocalState();
+  const { customers, loading } = useLocalState();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
 
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phoneNumber.toString().includes(searchTerm)
-  );
+  const searchingByPhone = isDigitsOnly(searchTerm) && searchTerm.trim().length > 0;
+
+  // Filter first, then rank so exact/whole-word matches (a standalone
+  // "Tahir") come before loose partial matches (e.g. "Amina Tahir" or
+  // "Tahira") instead of showing up in arbitrary order.
+  const filteredCustomers = searchingByPhone
+    ? customers.filter(c => matchesPhoneSearch(c.phoneNumber, searchTerm))
+    : sortByNameMatch(customers.filter(c => matchesNameSearch(c.name, searchTerm)), searchTerm);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / PAGE_SIZE));
+  // Searching/filtering changes what "page 1" even means, so jump back to
+  // it whenever the search term changes rather than leaving the user
+  // stranded on a now out-of-range page.
+  useEffect(() => { setPage(1); }, [searchTerm]);
+  const safePage = Math.min(page, totalPages);
+  const pageCustomers = filteredCustomers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   if (loading) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">Loading Directory...</p>
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">{t('Loading Directory...', 'ڈائریکٹری لوڈ ہو رہی ہے...')}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-10">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <motion.header
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
         <div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tighter uppercase">Customer Directory</h1>
-          <p className="text-slate-500 mt-1 font-medium italic">Manage your elite clientele. / کسٹمرز کی فہرست</p>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tighter uppercase">{t('Customer Directory', 'کسٹمر ڈائریکٹری')}</h1>
+          <p className="text-slate-500 mt-1.5 font-medium italic text-base sm:text-lg">{t('Manage your elite clientele.', 'اپنے کسٹمرز کی فہرست کا انتظام کریں۔')}</p>
         </div>
 
-        <div className="relative group max-w-md w-full">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={20} />
+        <div className="flex items-stretch border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-lg max-w-md w-full focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+          <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
+            <Search size={18} className="text-slate-400" />
+          </div>
           <input
             type="text"
-            placeholder="Search name or phone... / تلاش کریں"
-            className="input-field pl-14 shadow-lg shadow-slate-200/50"
+            placeholder={t('Search by name or phone (start with 0)...', 'نام یا فون نمبر سے تلاش کریں (0 سے شروع)...')}
+            className="flex-1 px-4 py-4 bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-      </header>
+      </motion.header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Newest first — backend already sorts by createdAt desc. Cards are
+          compact: just enough to identify the customer and jump to their
+          full profile. Editing/deleting happens only from that profile.
+          One row of 5 at a time (see PAGE_SIZE) with Prev/Next below,
+          instead of the entire directory rendering onto the page at once. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         <AnimatePresence mode="popLayout">
-          {filteredCustomers.map((customer, index) => (
+          {pageCustomers.map((c, i) => (
             <motion.div
               layout
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: index * 0.05 }}
-              key={customer._id}
-              className="glass-card p-8 rounded-[2.5rem] relative group hover:shadow-2xl hover:shadow-primary/10 transition-all border-none"
+              transition={{ delay: i * 0.03 }}
+              whileHover={{ y: -3 }}
+              key={c._id}
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                  <User size={28} />
+              <Link
+                to={`/customer/${c._id}`}
+                className="glass-card p-5 rounded-[1.75rem] flex flex-col items-center text-center gap-2.5 hover:shadow-xl hover:shadow-primary/10 transition-shadow group"
+              >
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary text-lg font-black">
+                  {c.name?.charAt(0).toUpperCase() || '?'}
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => { if (window.confirm('Delete customer?')) deleteCustomer(customer._id); }}
-                    className="p-2 hover:bg-red-50 text-red-400 hover:text-red-500 rounded-xl transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-black text-slate-800 line-clamp-1 uppercase tracking-tight">{customer.name}</h3>
-                  <p className="text-slate-400 text-sm font-medium flex items-center gap-1.5 mt-0.5">
-                    <Phone size={12} /> {customer.phoneNumber}
+                <div className="min-w-0 w-full">
+                  <h3 className="text-base font-black text-slate-800 uppercase tracking-tight truncate">
+                    {searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />}
+                  </h3>
+                  <p className="text-slate-400 text-sm font-medium flex items-center justify-center gap-1 mt-0.5 truncate">
+                    <Phone size={11} className="flex-shrink-0" />
+                    {searchingByPhone ? (
+                      (() => {
+                        const { matched, rest } = splitPhoneMatch(c.phoneNumber, searchTerm);
+                        return matched ? (
+                          <span>
+                            <span className="bg-yellow-200 text-slate-800 font-black rounded px-0.5">{matched}</span>
+                            {rest}
+                          </span>
+                        ) : c.phoneNumber;
+                      })()
+                    ) : c.phoneNumber}
                   </p>
                 </div>
-
-                <div className="flex items-start gap-2 pt-2 text-slate-500 text-sm min-h-[40px]">
-                  <MapPin size={14} className="mt-1 flex-shrink-0" />
-                  <p className="line-clamp-2 italic">{customer.address}</p>
-                </div>
-
-                <Link
-                  to={`/customer/${customer._id}`}
-                  className="w-full mt-4 py-3 bg-slate-50 hover:bg-primary hover:text-white rounded-xl flex items-center justify-center gap-2 font-bold text-slate-600 transition-all group/btn"
-                >
-                  View Profile <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                </Link>
-              </div>
+                <span className="text-xs font-bold text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {t('View Profile', 'پروفائل دیکھیں')} <ArrowRight size={12} />
+                </span>
+              </Link>
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
+      {/* Pagination — only shown once there's more than one page's worth of
+          results, so it doesn't clutter small directories. */}
+      {filteredCustomers.length > PAGE_SIZE && (
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-slate-200 text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className="text-sm font-bold text-slate-500">
+            {t('Page', 'صفحہ')} {safePage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-slate-200 text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
+
       {filteredCustomers.length === 0 && (
         <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-          <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-            <Search size={32} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-600">No customers found / کوئی کسٹمر نہیں ملا</h3>
-          <p className="text-slate-400 mt-1">Try adjusting your search terms.</p>
+          <Search size={32} className="mx-auto mb-4 text-slate-300" />
+          <h3 className="text-xl font-bold text-slate-500">{t('No customers found', 'کوئی کسٹمر نہیں ملا')}</h3>
+          <p className="text-slate-400 mt-1 text-sm">{t('Phone number ko 0 se shuru kar ke search karein', 'فون نمبر 0 سے شروع کر کے تلاش کریں')}</p>
         </div>
       )}
     </div>
