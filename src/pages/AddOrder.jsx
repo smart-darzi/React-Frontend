@@ -5,13 +5,16 @@ import { useLocalState } from '../context/useLocalState';
 import {
   Scissors, Search, ClipboardList,
   Palette, Library, CheckCircle,
-  ChevronRight, ArrowLeft, Loader2, Check, X, Ruler, AlertTriangle
+  ChevronRight, ArrowLeft, Loader2, Check, X, Ruler, AlertTriangle, RefreshCcw
 } from 'lucide-react';
 import { isDigitsOnly, matchesPhoneSearch, splitPhoneMatch } from '../utils/phoneSearch';
 import { validateDesignNumber } from '../utils/validators';
 import { matchesNameSearch, sortByNameMatch, highlightNameMatch } from '../utils/nameSearch';
 import { DESIGN_CATEGORIES } from '../utils/designCategories';
 import DesignDetailModal from '../components/DesignDetailModal';
+import DesignThumb from '../components/DesignThumb';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 // Renders a name with the matched search portion highlighted, e.g.
 // searching "Tahir" against "Amina Tahir" highlights just "Tahir" so
@@ -27,33 +30,51 @@ const HighlightedName = ({ name, term }) => (
 );
 
 // ─── Defined OUTSIDE AddOrder so they never remount on state change ───────────
-const Section = ({ title, icon, children }) => {
+const Section = ({ title, icon, children, fullWidth = false }) => {
   const Icon = icon;
   return (
-    <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] space-y-8">
-      <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-        <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Icon size={24} /></div>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{title}</h2>
+    <div className="glass-card p-4 sm:p-6 lg:p-10 rounded-xl space-y-5 sm:space-y-6 lg:space-y-8">
+      <div className="flex items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-6">
+        <div className="bg-primary/10 p-2 sm:p-3 rounded-xl text-primary"><Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" /></div>
+        <h2 className="text-base sm:text-xl lg:text-2xl font-black text-slate-800 tracking-tighter uppercase">{title}</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {children}
-      </div>
+      {fullWidth ? (
+        // Single-block content (e.g. the Customer card) — always full width,
+        // never squeezed into 1/3 of a 3-column grid or forced to scroll.
+        children
+      ) : (
+        /* Same column arrangement as desktop even on phone/tablet — fields
+           never wrap down to a single stacked column. On narrow screens the
+           row is horizontally scrollable instead (scrollbar-hide keeps the
+           track invisible so it doesn't clutter the glassy card design). */
+        <div className="overflow-x-auto pb-1 -mx-1 px-1 lg:mx-0 lg:px-0 lg:overflow-visible scrollbar-hide">
+          <div className="grid grid-cols-3 gap-3 sm:gap-5 lg:gap-8 min-w-[560px] sm:min-w-[680px] lg:min-w-0">
+            {children}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const Dropdown = ({ label, options, value, onChange }) => (
-  <div className="space-y-3">
-    <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">{label}</label>
-    <select
-      className="input-field appearance-none cursor-pointer"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-    </select>
-  </div>
-);
+const Dropdown = ({ label, options, value, onChange }) => {
+  const { td } = useLanguage();
+  return (
+    <div className="space-y-1.5 sm:space-y-3 min-w-0">
+      <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest px-1 truncate block">{label}</label>
+      <select
+        className="input-field appearance-none cursor-pointer !py-2.5 !px-3 sm:!py-4 sm:!px-5"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {/* Stored value stays the full "English / اردو" string (that's the
+            convention the rest of the app's td() reads back out) — only the
+            visible option text is narrowed to the current language. */}
+        {options.map(opt => <option key={opt} value={opt}>{td(opt)}</option>)}
+      </select>
+    </div>
+  );
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Mirrors backend/controllers/order.controller.js SIZE_FIELDS — a customer
@@ -67,6 +88,8 @@ const AddOrder = () => {
   const location = useLocation();
   const navigate  = useNavigate();
   const { customers, designs, sizes, fetchSize, addOrder, updateOrder } = useLocalState();
+  const { t } = useTranslation();
+  const { td, tn, language } = useLanguage();
 
   const editingOrder = location.state?.editOrder || null;
   const isEditMode = Boolean(editingOrder);
@@ -160,18 +183,18 @@ const AddOrder = () => {
     setError('');
 
     if (!formData.customerId) {
-      setError('Please select a customer first / پہلے کسٹمر منتخب کریں');
+      setError(t('addOrder.pleaseSelectCustomerFirst'));
       setLoading(false);
       return;
     }
 
     if (!hasMeasurements) {
-      setError('Pehle customer ki measurements add karein, phir order banayein / Please add the customer\'s measurements before creating an order');
+      setError(t('addOrder.pleaseAddCustomerSMeasurementsBefore'));
       setLoading(false);
       return;
     }
 
-    const designNumberError = validateDesignNumber(formData.designNumber);
+    const designNumberError = validateDesignNumber(formData.designNumber, { t });
     if (designNumberError) {
       setDesignNumberTouched(true);
       setError(designNumberError);
@@ -183,6 +206,7 @@ const AddOrder = () => {
       const payload = {
         ...formData,
         selectedDesignName: selectedCatalogDesign?.name || null,
+        selectedDesignNameUrdu: selectedCatalogDesign?.nameUrdu || null,
         selectedDesignImage: selectedCatalogDesign?.images?.[0]?.url || null,
       };
       if (isEditMode) {
@@ -193,7 +217,7 @@ const AddOrder = () => {
       setIsSuccess(true);
       setTimeout(() => navigate('/view-orders'), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to save order. Please try again.');
+      setError(err.response?.data?.error || err.message || t('addOrder.failedSaveOrderPleaseTryAgain'));
     } finally {
       setLoading(false);
     }
@@ -216,9 +240,11 @@ const AddOrder = () => {
           <CheckCircle size={48} />
         </motion.div>
         <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">
-          {isEditMode ? 'Order Updated Successfully!' : 'Order Saved Successfully!'}
+          {isEditMode
+            ? t('addOrder.orderUpdatedSuccessfully')
+            : t('addOrder.orderSavedSuccessfully')}
         </h2>
-        <p className="text-slate-500 font-medium">Redirecting to orders...</p>
+        <p className="text-slate-500 font-medium">{t('addOrder.redirectingOrders')}</p>
       </motion.div>
     );
   }
@@ -233,14 +259,18 @@ const AddOrder = () => {
       >
         <div className="min-w-0">
           <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tighter uppercase flex items-center gap-3 sm:gap-4">
-            <div className="bg-primary p-2 sm:p-3 rounded-2xl text-white shadow-lg flex-shrink-0"><Scissors size={20} className="sm:hidden" /><Scissors size={32} className="hidden sm:block" /></div>
-            <span className="truncate">{isEditMode ? 'Edit Tailoring Order' : 'New Tailoring Order'}</span>
+            <div className="bg-primary p-2 sm:p-3 rounded-xl text-white shadow-lg flex-shrink-0"><Scissors size={20} className="sm:hidden" /><Scissors size={32} className="hidden sm:block" /></div>
+            <span className="truncate">
+              {isEditMode ? t('addOrder.editTailoringOrder') : t('addOrder.newTailoringOrder')}
+            </span>
           </h1>
           <p className="text-slate-500 mt-1.5 sm:mt-2 font-medium text-xs sm:text-lg ml-[44px] sm:ml-16 truncate">
-            {isEditMode ? 'Update the details for this order.' : 'Custom craft perfection for every client.'}
+            {isEditMode
+              ? t('addOrder.updateDetailsOrder')
+              : t('addOrder.customCraftPerfectionEveryClient')}
           </p>
         </div>
-        <button onClick={() => navigate(-1)} className="p-3 sm:p-4 bg-white rounded-2xl text-slate-400 hover:text-primary transition-colors shadow-xl shadow-slate-200 flex-shrink-0">
+        <button onClick={() => navigate(-1)} className="p-3 sm:p-4 bg-white rounded-xl text-slate-400 hover:text-primary transition-colors shadow-xl shadow-slate-200 flex-shrink-0">
           <ArrowLeft size={20} className="sm:hidden" /><ArrowLeft size={24} className="hidden sm:block" />
         </button>
       </motion.header>
@@ -257,58 +287,62 @@ const AddOrder = () => {
             explicit z-index lifts the entire card, dropdown included,
             above the cards that follow it. */}
         <div className="relative z-20">
-          <Section title="Customer / کسٹمر کا انتخاب" icon={Search}>
-            <div className="lg:col-span-3 space-y-4">
+          <Section title={t('addOrder.customer')} icon={Search} fullWidth>
+            <div className="space-y-4">
               {selectedCustomer ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between bg-primary/5 p-6 rounded-[2rem] border-2 border-primary/10">
-                    <div className="flex items-center gap-6">
-                      <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-4 bg-primary/5 p-2 sm:p-6 rounded-xl border-2 border-primary/10">
+                    <div className="flex items-center gap-1.5 sm:gap-6 min-w-0 flex-1">
+                      <div className="w-8 h-8 sm:w-16 sm:h-16 flex-shrink-0 bg-primary rounded-lg sm:rounded-xl flex items-center justify-center text-white text-xs sm:text-2xl font-black">
                         {selectedCustomer.name?.charAt(0) || '?'}
                       </div>
-                      <div>
-                        <h3 className="text-xl font-black text-slate-800 uppercase">{selectedCustomer.name}</h3>
-                        <p className="text-primary font-bold">{selectedCustomer.phoneNumber}</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-[11px] sm:text-xl font-black text-slate-800 uppercase truncate">{tn(selectedCustomer.name)}</h3>
+                        <p className="text-primary font-bold text-[10px] sm:text-base truncate">{selectedCustomer.phoneNumber}</p>
                       </div>
                     </div>
+                    {/* Icon-only on phone (text label has nowhere to fit next to
+                        the name/phone without pushing them out); full text
+                        label returns from sm and up where there's room. */}
                     <button
                       type="button"
                       onClick={() => setFormData(p => ({ ...p, customerId: '' }))}
                       disabled={isEditMode}
-                      className="text-slate-400 font-bold hover:text-red-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+                      title={t('addOrder.changeCustomer')}
+                      className="flex-shrink-0 flex items-center gap-1.5 p-1.5 sm:p-0 text-slate-400 font-bold text-base sm:text-base hover:text-red-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
                     >
-                      Change Customer
+                      <RefreshCcw size={14} className="sm:hidden" />
+                      <span className="hidden sm:inline text-base">{t('addOrder.changeCustomer')}</span>
                     </button>
                   </div>
 
                   {!isEditMode && !checkingSize && !hasMeasurements && (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-amber-50 border-2 border-amber-200 p-6 rounded-[2rem]">
-                      <div className="flex items-center gap-3 flex-1">
-                        <AlertTriangle className="text-amber-500 flex-shrink-0" size={24} />
-                        <p className="text-amber-700 font-bold text-sm">
-                          Is customer ki measurements abhi tak add nahi hui — order banane se pehle measurements zaroori hain.
-                          <br className="hidden sm:block" />
-                          This customer has no measurements on file yet — required before an order can be created.
+                    <div className="flex flex-row flex-nowrap items-center gap-1.5 sm:gap-4 bg-amber-50 border-2 border-amber-200 p-2 sm:p-6 rounded-xl">
+                      <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+                        <AlertTriangle className="text-amber-500 flex-shrink-0" size={14} />
+                        <p className="text-amber-700 font-bold text-[10px] sm:text-sm leading-snug whitespace-nowrap sm:whitespace-normal">
+                          <span className="sm:hidden">{t('addOrder.customerNoMeasurementsShort')}</span>
+                          <span className="hidden sm:inline">{t('addOrder.customerNoMeasurementsFileYetRequired')}</span>
                         </p>
                       </div>
                       <Link
                         to={`/customer/${selectedCustomer._id}`}
-                        className="flex-shrink-0 flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-sm rounded-2xl transition-all whitespace-nowrap"
+                        className="flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-5 sm:py-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] sm:text-sm rounded-lg sm:rounded-xl transition-all whitespace-nowrap"
                       >
-                        <Ruler size={16} /> Measurements Add Karein
+                        <Ruler size={11} className="flex-shrink-0" /> {t('addOrder.addMeasurements')}
                       </Link>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="relative" ref={searchBoxRef}>
-                  <div className="flex items-stretch border border-slate-200 rounded-[2.5rem] overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                  <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                     <div className="flex items-center justify-center px-5 bg-slate-100/80 border-r border-slate-200 min-w-[60px]">
                       <Search size={20} className="text-slate-400" />
                     </div>
                     <input
                       type="text"
-                      placeholder="Search customer by name or phone (start with 0)..."
+                      placeholder={t('addOrder.searchCustomerByNameOrPhone')}
                       className="flex-1 px-5 py-6 text-lg bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -316,17 +350,17 @@ const AddOrder = () => {
                     />
                   </div>
                   {searchTerm && filteredCustomers.length > 0 && isSearchFocused && (
-                    <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 z-50 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-xl shadow-2xl border border-slate-100 p-4 z-50 max-h-[300px] overflow-y-auto custom-scrollbar">
                       {filteredCustomers.map(c => (
                         <button
                           key={c._id}
                           type="button"
                           onClick={() => { setFormData(p => ({ ...p, customerId: c._id })); setSearchTerm(''); setIsSearchFocused(false); }}
-                          className="w-full p-4 hover:bg-slate-50 rounded-2xl flex items-center justify-between text-left group/item"
+                          className="w-full p-4 hover:bg-slate-50 rounded-xl flex items-center justify-between text-left group/item"
                         >
                           <div>
                             <p className="font-black text-slate-800 uppercase">
-                              {searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />}
+                              {language === 'ur' ? tn(c.name) : (searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />)}
                             </p>
                             <p className="text-xs text-slate-400 font-bold">
                               {searchingByPhone ? (
@@ -354,45 +388,45 @@ const AddOrder = () => {
         </div>
 
         {/* ── Dress Styling ── */}
-        <Section title="Dress Styling / پرہیز" icon={Palette}>
+        <Section title={t('addOrder.dressStyling')} icon={Palette}>
           <Dropdown
-            label="Order Category / آرڈر کٹیگری"
+            label={t('addOrder.orderCategory')}
             value={formData.orderCategory}
             onChange={set('orderCategory')}
             options={['Gents / مردانہ', 'Ladies / زنانہ', 'Kids / بچوں کا']}
           />
           <Dropdown
-            label="Order Type / آرڈر کی قسم"
+            label={t('addOrder.orderType')}
             value={formData.orderType}
             onChange={set('orderType')}
             options={['Shalwar Qamees / شلوار قمیص', 'Shirt / شرٹ', 'Kurta Shalwar / کُرتا پاجامہ', 'Waist Coat / ویس کوٹ', 'Trouser / ٹراؤزر']}
           />
           <Dropdown
-            label="Neck Style / گلا"
+            label={t('addOrder.neckStyle')}
             value={formData.neckStyle}
             onChange={set('neckStyle')}
             options={['Collar / کالر', 'Ban / بین']}
           />
           <Dropdown
-            label="Cuff Style / کف"
+            label={t('addOrder.cuffStyle')}
             value={formData.cuffStyle}
             onChange={set('cuffStyle')}
             options={['Cuff / کف والے بازو', 'Simple / سادہ بازو']}
           />
           <Dropdown
-            label="Lap Style / لیپ"
+            label={t('addOrder.lapStyle')}
             value={formData.lapStyle}
             onChange={set('lapStyle')}
             options={['Single Lap / سنگل لیپ', 'Double Lap / ڈبل لیپ', 'No Lap / بغیر لیپ']}
           />
           <Dropdown
-            label="Pant Style / پینٹ"
+            label={t('addOrder.pantStyle')}
             value={formData.pantStyle}
             onChange={set('pantStyle')}
             options={['Shalwar / شلوار', 'Trouser / ٹراؤزر', 'Pajama / پاجامہ', 'Narrow Shalwar / نیرو شلوار']}
           />
           <Dropdown
-            label="Pocket Style / جیب"
+            label={t('addOrder.pocketStyle')}
             value={formData.pocketStyle}
             onChange={set('pocketStyle')}
             options={[
@@ -408,13 +442,13 @@ const AddOrder = () => {
             ]}
           />
           <Dropdown
-            label="Button Style / بٹن"
+            label={t('addOrder.buttonStyle')}
             value={formData.buttonStyle}
             onChange={set('buttonStyle')}
             options={['Fancy / فینسی بٹن', 'Simple / سادہ بٹن', 'Metallic / میٹل بٹن']}
           />
           <Dropdown
-            label="Elastic / لاسٹک"
+            label={t('addOrder.elastic')}
             value={formData.elastic}
             onChange={set('elastic')}
             options={['Elastic / لاسٹک', 'Simple / نالا']}
@@ -422,32 +456,32 @@ const AddOrder = () => {
         </Section>
 
         {/* ── Embroidery ── */}
-        <Section title="Embroidery / کڑھائی" icon={Library}>
+        <Section title={t('addOrder.embroidery')} icon={Library}>
           <Dropdown
-            label="Embroidery / کڑھائی"
+            label={t('addOrder.embroidery')}
             value={formData.embroidery}
             onChange={set('embroidery')}
             options={['No / کوئی نہیں', 'Yes / ہاں']}
           />
           <Dropdown
-            label="Embroidery Style / کڑہائی کا سٹائل"
+            label={t('addOrder.embroideryStyle')}
             value={formData.style}
             onChange={set('style')}
             options={['Single Salai / سنگل سلائی', 'Double Salai / ڈبل سلائی', 'Raishmi Single / ریشمی سنگل', 'Raishmi Double / ریشمی ڈبل']}
           />
           <Dropdown
-            label="Book Number / کتاب کا نمبر"
+            label={t('addOrder.bookNumber')}
             value={formData.bookNumber}
             onChange={set('bookNumber')}
             options={['1', '2', '3']}
           />
-          <div className="space-y-3">
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Design Number / ڈیزائن نمبر</label>
+          <div className="space-y-1.5 sm:space-y-3 min-w-0">
+            <label className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest px-1 truncate block">{t('addOrder.designNumber')}</label>
             <input
               type="text"
               inputMode="numeric"
-              className={`input-field ${designNumberTouched && validateDesignNumber(formData.designNumber) ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : ''}`}
-              placeholder="Enter design code..."
+              className={`input-field !py-2.5 !px-3 sm:!py-4 sm:!px-5 ${designNumberTouched && validateDesignNumber(formData.designNumber, { t }) ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : ''}`}
+              placeholder={t('addOrder.enterDesignCode')}
               value={formData.designNumber}
               onChange={(e) => {
                 setDesignNumberTouched(true);
@@ -455,19 +489,21 @@ const AddOrder = () => {
               }}
               onBlur={() => setDesignNumberTouched(true)}
             />
-            {designNumberTouched && validateDesignNumber(formData.designNumber) && (
-              <p className="text-xs text-red-600 font-bold px-1 flex items-center gap-1">⚠ {validateDesignNumber(formData.designNumber)}</p>
+            {designNumberTouched && validateDesignNumber(formData.designNumber, { t }) && (
+              <p className="text-[10px] sm:text-xs text-red-600 font-bold px-1 flex items-center gap-1">⚠ {validateDesignNumber(formData.designNumber, { t })}</p>
             )}
           </div>
         </Section>
 
         {/* ── Design Catalog (optional) ── */}
         {designs.length > 0 && (
-          <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] space-y-6">
+          <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-6">
               <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Palette size={24} /></div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">Design Catalog / ڈیزائن کیٹلاگ (Optional)</h2>
+                <div className="bg-primary/10 p-3 rounded-xl text-primary"><Palette size={24} /></div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">
+                  {t('addOrder.designCatalogOptional')}
+                </h2>
               </div>
               {selectedCatalogDesign && (
                 <button
@@ -475,17 +511,24 @@ const AddOrder = () => {
                   onClick={() => setFormData(p => ({ ...p, selectedDesignId: '' }))}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-500 text-xs font-black uppercase tracking-wider hover:bg-red-100"
                 >
-                  <X size={14} /> Clear
+                  <X size={14} /> {t('addOrder.clear')}
                 </button>
               )}
             </div>
 
             {selectedCatalogDesign && (
-              <div className="flex items-center gap-4 p-4 bg-primary/5 border-2 border-primary/20 rounded-2xl">
-                <img src={selectedCatalogDesign.images?.[0]?.url} alt={selectedCatalogDesign.name} className="w-16 h-16 rounded-xl object-cover" />
+              <div className="flex items-center gap-4 p-4 bg-primary/5 border-2 border-primary/20 rounded-xl">
+                <div className="relative flex-shrink-0">
+                  <DesignThumb src={selectedCatalogDesign.images?.[0]?.url} alt={selectedCatalogDesign.name} className="w-16 h-16 rounded-xl object-cover" iconSize={20} />
+                  {selectedCatalogDesign.images?.length > 1 && (
+                    <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-black/60 text-white">
+                      +{selectedCatalogDesign.images.length - 1}
+                    </span>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-slate-800 uppercase truncate">{selectedCatalogDesign.name}</p>
-                  <p className="text-xs text-slate-400 font-bold">{selectedCatalogDesign.category}</p>
+                  <p className="text-xs text-slate-400 font-bold">{td(selectedCatalogDesign.category)}</p>
                 </div>
                 {selectedCatalogDesign.images?.length > 1 && (
                   <button
@@ -493,20 +536,20 @@ const AddOrder = () => {
                     onClick={() => setViewingDesign(selectedCatalogDesign)}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border-2 border-primary/20 text-primary text-xs font-black uppercase tracking-wider hover:bg-primary/10 whitespace-nowrap"
                   >
-                    <Library size={14} /> Sab Tasveerein ({selectedCatalogDesign.images.length})
+                    <Library size={14} /> {t('addOrder.allPhotos')} ({selectedCatalogDesign.images.length})
                   </button>
                 )}
               </div>
             )}
 
             <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="flex items-stretch border border-slate-200 rounded-2xl overflow-hidden bg-white/50 flex-1">
+              <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 flex-1">
                 <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200">
                   <Search size={18} className="text-slate-400" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Design search karein..."
+                  placeholder={t('addOrder.searchDesigns')}
                   className="flex-1 px-4 py-3 bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                   value={designSearch}
                   onChange={(e) => setDesignSearch(e.target.value)}
@@ -518,7 +561,7 @@ const AddOrder = () => {
                   onClick={() => setDesignCategoryFilter('All')}
                   className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${designCategoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                 >
-                  All
+                  {t('addOrder.all')}
                 </button>
                 {DESIGN_CATEGORIES.map(c => (
                   <button
@@ -527,16 +570,17 @@ const AddOrder = () => {
                     onClick={() => setDesignCategoryFilter(c)}
                     className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${designCategoryFilter === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                   >
-                    {c.split(' / ')[0]}
+                    {td(c)}
                   </button>
                 ))}
               </div>
             </div>
 
             {filteredCatalogDesigns.length === 0 ? (
-              <p className="text-slate-400 font-medium text-center py-6">Koi matching design nahi mila</p>
+              <p className="text-slate-400 font-medium text-center py-6">{t('addOrder.noMatchingDesignFound')}</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
+              <div className="overflow-x-auto pb-1 -mx-1 px-1 lg:mx-0 lg:px-0 lg:overflow-visible scrollbar-hide">
+                <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1 min-w-[520px] sm:min-w-[640px] lg:min-w-0">
                 {filteredCatalogDesigns.map(d => {
                   const isSelected = formData.selectedDesignId === d._id;
                   return (
@@ -544,36 +588,44 @@ const AddOrder = () => {
                       type="button"
                       key={d._id}
                       onClick={() => setFormData(p => ({ ...p, selectedDesignId: isSelected ? '' : d._id }))}
-                      className={`relative rounded-2xl overflow-hidden border-2 transition-all text-left ${isSelected ? 'border-primary ring-4 ring-primary/20' : 'border-slate-100 hover:border-primary/40'}`}
+                      className={`glass-card rounded-2xl overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-0.5 transition-all p-2.5 sm:p-4 flex flex-col items-center text-center border-2 ${isSelected ? 'border-primary ring-4 ring-primary/20' : 'border-transparent hover:border-primary/40'}`}
                     >
-                      <div className="relative">
-                        <img src={d.images?.[0]?.url} alt={d.name} className="w-full h-28 object-contain bg-slate-50" />
+                      <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 flex-shrink-0">
+                        <div className="w-full h-full rounded-2xl overflow-hidden bg-white border border-slate-100">
+                          <DesignThumb src={d.images?.[0]?.url} alt={d.name} className="w-full h-full object-cover object-center" iconSize={22} />
+                        </div>
                         {d.images?.length > 1 && (
-                          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-black bg-black/50 text-white backdrop-blur-sm">
+                          <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-black/50 text-white backdrop-blur-sm">
                             +{d.images.length - 1}
                           </span>
                         )}
                         {isSelected && (
-                          <div className="absolute top-2 right-2 p-1.5 bg-primary text-white rounded-lg shadow">
+                          <div className="absolute top-1.5 right-1.5 p-1.5 bg-primary text-white rounded-xl shadow">
                             <Check size={14} />
                           </div>
                         )}
                       </div>
-                      <div className="p-2 bg-white">
-                        <p className="text-xs font-black text-slate-700 uppercase truncate">
+                      <div className="w-full mt-2 sm:mt-3 space-y-1">
+                        <h3 className="text-[11px] sm:text-sm font-black text-slate-800 uppercase truncate">
                           <HighlightedName name={d.name} term={designSearch} />
-                        </p>
+                        </h3>
+                        <div className="flex justify-center">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600">
+                            {td(d.category)}
+                          </span>
+                        </div>
                       </div>
                     </button>
                   );
                 })}
+                </div>
               </div>
             )}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-6 rounded-[2rem] text-center font-bold border border-red-100">
+          <div className="bg-red-50 text-red-600 p-6 rounded-xl text-center font-bold border border-red-100">
             {error}
           </div>
         )}
@@ -583,16 +635,16 @@ const AddOrder = () => {
             type="submit"
             disabled={loading}
             aria-disabled={!formData.customerId || !hasMeasurements || checkingSize}
-            className={`primary-btn w-full sm:w-auto px-8 sm:px-16 py-4 sm:py-6 rounded-3xl flex items-center justify-center gap-4 text-base sm:text-xl shadow-2xl shadow-primary/30 transition-all ${
+            className={`primary-btn w-full sm:w-auto px-8 sm:px-16 py-4 sm:py-6 rounded-xl flex items-center justify-center gap-4 text-base sm:text-xl shadow-2xl shadow-primary/30 transition-all ${
               !formData.customerId || !hasMeasurements || checkingSize || loading ? 'opacity-50' : 'hover:scale-[1.05]'
             }`}
           >
             {loading ? (
               <Loader2 className="animate-spin" size={28} />
             ) : isEditMode ? (
-              <>Update Order / آرڈر اپ ڈیٹ کریں <ClipboardList size={28} /></>
+              <>{t('addOrder.updateOrder')} <ClipboardList size={28} /></>
             ) : (
-              <>Save Order & Finish / آرڈر محفوظ کریں <ClipboardList size={28} /></>
+              <>{t('addOrder.saveOrderFinish')} <ClipboardList size={28} /></>
             )}
           </button>
         </div>

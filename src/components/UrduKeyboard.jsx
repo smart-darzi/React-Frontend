@@ -20,7 +20,7 @@ const UrduKeyboard = ({ value = '', onKey, onBackspace, onSpace, onClose, onDone
 
   const handleDone = () => {
     if (!value || !value.trim()) {
-      toast?.showToast('Pehle kuch likhein, phir Done dabayein / Please type something before pressing Done', 'error');
+      toast?.showToast('Please type something before pressing Done', 'error');
       return;
     }
     onDone();
@@ -29,7 +29,7 @@ const UrduKeyboard = ({ value = '', onKey, onBackspace, onSpace, onClose, onDone
   return (
     <div
       dir="rtl"
-      className="mt-2 p-3 sm:p-4 bg-white rounded-2xl shadow-2xl border-2 border-primary/15 space-y-2 select-none"
+      className="mt-2 p-3 sm:p-4 bg-white rounded-xl shadow-2xl border-2 border-primary/15 space-y-2 select-none"
       onMouseDown={(e) => e.preventDefault()} // keep focus on the text input
     >
       <div className="flex items-center justify-between mb-1" dir="ltr">
@@ -50,7 +50,7 @@ const UrduKeyboard = ({ value = '', onKey, onBackspace, onSpace, onClose, onDone
               key={ch}
               type="button"
               onClick={() => onKey(ch)}
-              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white border-2 border-primary/25 text-primary text-lg font-bold hover:bg-primary hover:text-white hover:border-primary active:scale-95 transition-all"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white border-2 border-primary/25 text-primary text-lg font-bold hover:bg-primary hover:text-white hover:border-primary active:scale-95 transition-all"
             >
               {ch}
             </button>
@@ -62,21 +62,21 @@ const UrduKeyboard = ({ value = '', onKey, onBackspace, onSpace, onClose, onDone
         <button
           type="button"
           onClick={onBackspace}
-          className="flex-1 max-w-[110px] h-9 sm:h-10 flex items-center justify-center gap-1.5 rounded-lg bg-white border-2 border-red-200 text-red-500 text-xs font-black uppercase hover:bg-red-500 hover:text-white hover:border-red-500 active:scale-95 transition-all"
+          className="flex-1 max-w-[110px] h-9 sm:h-10 flex items-center justify-center gap-1.5 rounded-xl bg-white border-2 border-red-200 text-red-500 text-xs font-black uppercase hover:bg-red-500 hover:text-white hover:border-red-500 active:scale-95 transition-all"
         >
           <Delete size={14} /> Delete
         </button>
         <button
           type="button"
           onClick={onSpace}
-          className="flex-[2] h-9 sm:h-10 flex items-center justify-center rounded-lg bg-white border-2 border-primary/25 text-primary text-xs font-black uppercase hover:bg-primary hover:text-white hover:border-primary active:scale-95 transition-all"
+          className="flex-[2] h-9 sm:h-10 flex items-center justify-center rounded-xl bg-white border-2 border-primary/25 text-primary text-xs font-black uppercase hover:bg-primary hover:text-white hover:border-primary active:scale-95 transition-all"
         >
           Space
         </button>
         <button
           type="button"
           onClick={handleDone}
-          className="flex-1 max-w-[110px] h-9 sm:h-10 flex items-center justify-center gap-1.5 rounded-lg bg-primary text-white text-xs font-black uppercase hover:opacity-90 active:scale-95 transition-all"
+          className="flex-1 max-w-[110px] h-9 sm:h-10 flex items-center justify-center gap-1.5 rounded-xl bg-primary text-white text-xs font-black uppercase hover:opacity-90 active:scale-95 transition-all"
         >
           Done <ArrowRight size={14} />
         </button>

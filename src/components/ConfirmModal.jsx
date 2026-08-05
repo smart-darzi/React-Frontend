@@ -19,10 +19,10 @@ const ConfirmModal = ({ title, message, confirmLabel, cancelLabel, onConfirm, on
       onClick={onCancel}
     >
       <div
-        className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 max-w-md w-full shadow-2xl"
+        className="bg-white rounded-xl p-6 sm:p-10 max-w-md w-full shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 mb-6">
+        <div className="w-16 h-16 bg-amber-100 rounded-xl flex items-center justify-center text-amber-500 mb-6">
           <AlertTriangle size={28} />
         </div>
         <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">{title}</h3>
@@ -32,14 +32,14 @@ const ConfirmModal = ({ title, message, confirmLabel, cancelLabel, onConfirm, on
           <button
             onClick={onConfirm}
             disabled={confirming}
-            className={`flex-1 py-4 rounded-2xl text-white font-black shadow-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${toneClasses[tone] || toneClasses.primary}`}
+            className={`flex-1 py-4 rounded-xl text-white font-black shadow-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2 ${toneClasses[tone] || toneClasses.primary}`}
           >
             {confirming ? <Loader2 className="animate-spin" size={18} /> : (confirmLabel || t('Yes', 'ہاں'))}
           </button>
           <button
             onClick={onCancel}
             disabled={confirming}
-            className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all disabled:opacity-60"
+            className="flex-1 py-4 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all disabled:opacity-60"
           >
             {cancelLabel || t('No', 'نہیں')}
           </button>

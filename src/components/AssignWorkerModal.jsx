@@ -6,7 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 // Popup with Stage dropdown + Worker dropdown + Yes/No confirm.
 // stageOptions: array of stage names to choose from (pass a single-item array to lock the stage).
 const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, defaultWorkerId, onConfirm, onCancel, confirming = false }) => {
-  const { t, td } = useLanguage();
+  const { t, td, tn } = useLanguage();
   const [stage, setStage] = useState(defaultStage || stageOptions?.[0] || '');
   const [workerId, setWorkerId] = useState(defaultWorkerId || '');
 
@@ -44,8 +44,8 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-3 sm:p-6" onClick={onCancel}>
-      <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 max-w-md w-full shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onCancel} className="absolute top-8 right-8 p-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-slate-500 transition-colors">
+      <div className="bg-white rounded-xl p-6 sm:p-10 max-w-md w-full shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onCancel} className="absolute top-8 right-8 p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-500 transition-colors">
           <X size={18} />
         </button>
 
@@ -79,7 +79,7 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
               <option value="" disabled>{t('Select a worker', 'ورکر منتخب کریں')}</option>
               {sortedWorkers.map(w => (
                 <option key={w._id} value={w._id}>
-                  {isRecommendedForStage(w.role, stage) ? '★ ' : ''}{w.name} — {td(w.role)}
+                  {isRecommendedForStage(w.role, stage) ? '★ ' : ''}{tn(w.name)} — {td(w.role)}
                 </option>
               ))}
             </select>
@@ -104,14 +104,14 @@ const AssignWorkerModal = ({ title, stageOptions, defaultStage, workers, default
           <button
             onClick={handleConfirm}
             disabled={confirming || !workerId}
-            className="primary-btn flex-1 py-4 rounded-2xl shadow-xl shadow-primary/30 disabled:opacity-60 flex items-center justify-center gap-2"
+            className="primary-btn flex-1 py-4 rounded-xl shadow-xl shadow-primary/30 disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {confirming ? <Loader2 className="animate-spin" size={18} /> : t('Yes, Confirm', 'ہاں')}
           </button>
           <button
             onClick={onCancel}
             disabled={confirming}
-            className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all disabled:opacity-60"
+            className="flex-1 py-4 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all disabled:opacity-60"
           >
             {t('No', 'نہیں')}
           </button>

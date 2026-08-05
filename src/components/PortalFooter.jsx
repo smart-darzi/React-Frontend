@@ -8,7 +8,7 @@ const PortalFooter = () => (
   <footer className="pt-2">
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-primary/10 pt-6">
       <div className="flex items-center gap-2.5">
-        <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+        <span className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
           <Scissors size={14} />
         </span>
         <div>
@@ -17,7 +17,7 @@ const PortalFooter = () => (
         </div>
       </div>
       <div className="flex items-center gap-4 text-slate-400 text-xs font-medium">
-        <span className="flex items-center gap-1.5"><Phone size={12} /> Shop se raabta karein sawal ke liye</span>
+        <span className="flex items-center gap-1.5"><Phone size={12} /> Contact the shop for any questions</span>
         <span className="text-slate-300">·</span>
         <span>© {new Date().getFullYear()} Smart Master</span>
       </div>

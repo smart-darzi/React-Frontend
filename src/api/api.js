@@ -43,6 +43,8 @@ export const authService = {
   login: (email, password) => api.post('/auth/login', { email, password }).then(r => r.data),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }).then(r => r.data),
   resetPassword: (payload) => api.post('/auth/reset-password', payload).then(r => r.data),
+  checkResetEmail: (email) => api.post('/auth/check-reset-email', { email }).then(r => r.data),
+  resetPasswordDirect: (payload) => api.post('/auth/reset-password-direct', payload).then(r => r.data),
 };
 
 export const customerService = {
@@ -109,6 +111,9 @@ export const designService = {
   add:     (formData)       => api.post('/design/addDesign', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data),
   update:  (id, formData)   => api.patch(`/design/updateDesign/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data),
   delete:  (id)              => api.delete(`/design/deleteDesign?designId=${id}`).then(r => r.data),
+  // ✅ One-off backfill — auto-translates nameUrdu/descriptionUrdu for any
+  // existing designs that don't have them yet.
+  translateMissing: ()       => api.post('/design/translateMissing').then(r => r.data),
 };
 
 export default api;

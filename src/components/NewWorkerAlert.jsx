@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { HardHat, X, UserCheck, Phone, Mail, Briefcase, Loader2 } from 'lucide-react';
 import { useLocalState } from '../context/useLocalState';
+import { useLanguage } from '../context/LanguageContext';
 
 // Shown on top of any admin page as soon as a worker creates their own
 // (pending) account. Shows the worker's submitted details right there and
@@ -10,6 +11,7 @@ import { useLocalState } from '../context/useLocalState';
 // having to leave the page they're on.
 const NewWorkerAlert = () => {
   const { pendingWorkerAlerts, dismissWorkerAlert, approveWorker } = useLocalState();
+    const { t } = useLanguage();
   const navigate = useNavigate();
   const [approvingId, setApprovingId] = useState(null);
 
@@ -21,7 +23,7 @@ const NewWorkerAlert = () => {
       await approveWorker(worker._id);
       dismissWorkerAlert(worker._id);
     } catch {
-      alert('Worker approve karne mein masla hua. Workers page se try karein.');
+      alert(t('Could not approve the worker. Please try again from the Workers page.', 'ورکر منظور نہیں ہو سکا۔ براہ کرم Workers page سے دوبارہ کوشش کریں۔'));
     } finally {
       setApprovingId(null);
     }
@@ -33,7 +35,7 @@ const NewWorkerAlert = () => {
   };
 
   return (
-    <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 w-full max-w-sm">
+    <div className="fixed top-4 left-4 right-4 sm:top-6 sm:left-auto sm:right-6 z-[100] flex flex-col gap-3 sm:w-full sm:max-w-sm">
       <AnimatePresence>
         {pendingWorkerAlerts.map(worker => (
           <motion.div
@@ -41,22 +43,22 @@ const NewWorkerAlert = () => {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 60, scale: 0.9 }}
-            className="glass-card bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 space-y-4"
+            className="glass-card bg-white rounded-xl shadow-2xl border border-slate-100 p-6 space-y-4"
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary flex-shrink-0">
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
                 <HardHat size={22} />
               </div>
               <div className="flex-1">
-                <p className="font-black text-slate-800 uppercase tracking-tight text-sm">Naya Worker Aaya Hai!</p>
+                <p className="font-black text-slate-800 uppercase tracking-tight text-sm">{t('New worker request', 'نئی ورکر درخواست')}</p>
                 <p className="text-slate-500 text-xs font-medium mt-1">
-                  Portal access ka intezar kar raha hai — details neeche check karein.
+                  {t('Waiting for portal access - check the details below.', 'پورٹل رسائی کا انتظار ہے - نیچے تفصیل دیکھیں۔')}
                 </p>
               </div>
               <button
                 onClick={() => dismissWorkerAlert(worker._id)}
                 className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0"
-                title="Dismiss"
+                title={t('Dismiss', 'بند کریں')}
               >
                 <X size={18} />
               </button>
@@ -64,7 +66,7 @@ const NewWorkerAlert = () => {
 
             {/* Worker's submitted details — everything the admin needs to
                 decide, right here in the popup. */}
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-2">
+            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
               <p className="font-black text-slate-800 text-base">{worker.name}</p>
               <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                 <Briefcase size={13} className="text-primary flex-shrink-0" /> {worker.role}
@@ -96,7 +98,7 @@ const NewWorkerAlert = () => {
                 onClick={() => viewInWorkers(worker)}
                 className="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors whitespace-nowrap"
               >
-                View
+                {t('View', 'دیکھیں')}
               </button>
             </div>
           </motion.div>

@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import i18n from '../i18n';
+import { transliterateRomanUrdu } from '../utils/transliterate';
 
 // App-wide English/Urdu toggle. The whole app's bilingual strings already
 // carry both languages ("Dashboard / ڈیش بورڈ"), so switching languages here
@@ -19,6 +21,11 @@ export const LanguageProvider = ({ children }) => {
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, language); } catch { /* ignore */ }
+    // Keep i18next (used by pages migrated to react-i18next, e.g.
+    // Dashboard.jsx) pointed at the same language as the old t(en, ur)
+    // system below — so the single toggle button in Topbar switches both
+    // at once, regardless of which system a given page uses.
+    i18n.changeLanguage(language);
     // NOTE: `dir` is intentionally NOT flipped at the document level here.
     // The app already marks individual pure-Urdu fields with their own
     // dir="rtl" (design Urdu names, the Urdu keyboard, etc. — see
@@ -51,15 +58,14 @@ export const LanguageProvider = ({ children }) => {
     return language === 'ur' ? ur.trim() : en.trim();
   };
 
-  // `tdLog(str)` — for order-history / activity-log lines saved by the
-  // backend as a single combined "<Urdu line> / <English line>" string
-  // (see backend/controllers/order.controller.js's bilingualLog helper).
-  // Note the order is flipped from td() above: history lines are written
-  // Urdu-first, English-second. Picks out just the half that matches the
-  // current language. Old orders created before this convention existed
-  // may have a description with no " / " separator at all (a plain
-  // Roman-Urdu/English sentence saved directly) — those are returned
-  // unchanged since there's nothing to split.
+  // `tdLog(str)` — for orderHistory / timeline entries coming from the
+  // backend, which are saved as "<Urdu line> / <English line>" (Urdu half
+  // FIRST — the opposite order of `td`'s "English / Urdu" data values).
+  // Picks out just the half matching the current language, so a timeline
+  // entry never shows Urdu and English glued together on screen. Safe to
+  // call on anything: strings without the " / " separator (e.g. old,
+  // pre-refactor Roman-Urdu-only entries saved before this convention
+  // existed) are returned unchanged, and non-strings pass through untouched.
   const tdLog = (str) => {
     if (typeof str !== 'string') return str;
     const parts = str.split(' / ');
@@ -68,8 +74,16 @@ export const LanguageProvider = ({ children }) => {
     return language === 'ur' ? ur.trim() : en.trim();
   };
 
+  // `tn(name)` — for freely-typed PEOPLE names (customer, worker, admin).
+  // Unlike td()/tdLog(), there's no pre-written Urdu half stored anywhere —
+  // the name was typed once, in Roman script, at signup. In Urdu mode this
+  // runs it through a best-effort phonetic transliteration instead; in
+  // English mode it's returned unchanged. Not a translation (names aren't
+  // translated) — a script guess, so it won't always be 100% accurate.
+  const tn = (name) => (language === 'ur' ? transliterateRomanUrdu(name) : name);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, td, tdLog }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, td, tdLog, tn }}>
       {children}
     </LanguageContext.Provider>
   );
