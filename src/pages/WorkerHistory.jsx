@@ -5,6 +5,7 @@ import { ArrowLeft, History, Loader2 } from 'lucide-react';
 import { useLocalState } from '../context/useLocalState';
 import { getWorkerHistory, STAGE_URDU_LABELS } from '../utils/stages';
 import { useLanguage } from '../context/LanguageContext';
+import PaginationControls from '../components/PaginationControls';
 
 // Rows are grouped by order: an order that went Cutting → Sewing →
 // Embroidery → Ironing produces one stageHistory entry per stage, and a flat
@@ -24,11 +25,11 @@ const PAGE_SIZE = 6;
 const WorkerHistory = () => {
   const { workers, orders, customers, loading } = useLocalState();
   const navigate = useNavigate();
-  const { t, td } = useLanguage();
+  const { t, td, tn } = useLanguage();
   const [selectedWorkerId, setSelectedWorkerId] = useState('all');
   const [page, setPage] = useState(1);
 
-  const getCustomer = (id) => customers.find(c => c._id?.toString() === id?.toString())?.name || t('Unknown', 'نامعلوم');
+  const getCustomer = (id) => tn(customers.find(c => c._id?.toString() === id?.toString())?.name || t('Unknown', 'نامعلوم'));
 
   const approvedWorkers = workers.filter(w => w.isApproved !== false);
 
@@ -79,7 +80,7 @@ const WorkerHistory = () => {
             <ArrowLeft size={14} /> {t('Back to Workers', 'ورکرز کی طرف واپس')}
           </button>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter uppercase flex items-center gap-3 sm:gap-4">
-            <div className="bg-emerald-500 p-2.5 sm:p-3 rounded-2xl text-white shadow-lg flex-shrink-0"><History size={24} className="sm:hidden" /><History size={32} className="hidden sm:block" /></div>
+            <div className="bg-emerald-500 p-2.5 sm:p-3 rounded-xl text-white shadow-lg flex-shrink-0"><History size={24} className="sm:hidden" /><History size={32} className="hidden sm:block" /></div>
             <span className="truncate">{t('Work History', 'کام کی تاریخ')}</span>
           </h1>
           <p className="text-slate-500 mt-2 font-medium text-sm sm:text-lg ml-[52px] sm:ml-16">
@@ -91,7 +92,7 @@ const WorkerHistory = () => {
         </div>
       </motion.header>
 
-      <div className="glass-card rounded-[3rem] overflow-hidden min-w-0">
+      <div className="glass-card rounded-xl overflow-hidden min-w-0">
         <div className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50 border-b border-emerald-100">
           <h2 className="text-xl font-black text-emerald-700 uppercase tracking-tighter flex items-center gap-2">
             <History size={20} /> {t('All Completed Work', 'تمام مکمل شدہ کام')}
@@ -110,7 +111,7 @@ const WorkerHistory = () => {
                 const count = combinedHistory.filter(e => e.worker._id?.toString() === w._id?.toString()).length;
                 if (count === 0) return null;
                 return (
-                  <option key={w._id} value={w._id}>{w.name} — {td(w.role)} ({count})</option>
+                  <option key={w._id} value={w._id}>{tn(w.name)} — {td(w.role)} ({count})</option>
                 );
               })}
             </select>
@@ -173,35 +174,23 @@ const WorkerHistory = () => {
                 ))}
               </tbody>
             </table>
-
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between gap-4 px-8 py-5 bg-slate-50 border-t border-slate-100">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  {t(`Page ${safePage} of ${totalPages} · ${groups.length} orders`, `صفحہ ${safePage} از ${totalPages} · ${groups.length} آرڈرز`)}
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={safePage === 1}
-                    className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black uppercase hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600"
-                  >
-                    ← {t('Previous', 'پچھلا')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={safePage === totalPages}
-                    className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black uppercase hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600"
-                  >
-                    {t('Next', 'اگلا')} →
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
+
+      {groups.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4 px-2">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            {t(`Page ${safePage} of ${totalPages} · ${groups.length} orders`, `صفحہ ${safePage} از ${totalPages} · ${groups.length} آرڈرز`)}
+          </p>
+          <PaginationControls
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPrev={() => setPage(p => Math.max(1, p - 1))}
+            onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+          />
+        </div>
+      )}
     </div>
   );
 };

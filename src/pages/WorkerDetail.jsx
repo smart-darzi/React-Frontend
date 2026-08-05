@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLocalState } from '../context/useLocalState';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Phone, Mail, KeyRound, Scissors, ClipboardList,
   History, HardHat, Loader2, Pencil, Trash2, Save, X, Lock,
 } from 'lucide-react';
 import { getWorkerHistory, getWorkerStatusLabel, getWorkerStatusColor, roleToStage, ROLES } from '../utils/stages';
 import { validateEmail } from '../utils/validators';
+import PaginationControls from '../components/PaginationControls';
 
 const HISTORY_PAGE_SIZE = 5;
 
@@ -22,6 +25,8 @@ const WorkerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { workers, orders, customers, loading, updateWorker, deleteWorker } = useLocalState();
+  const { t, td, tn, language } = useLanguage();
+  const { t: ti } = useTranslation();
   const [page, setPage] = useState(1);
 
   // ── Edit / Delete — moved here from the Workers list so the list can
@@ -50,21 +55,21 @@ const WorkerDetail = () => {
   };
   const validatePhone = (phone) => {
     if (!phone) return null;
-    if (!/^03\d{9}$/.test(phone)) return 'Invalid number format — must be 11 digits starting with 03 / نمبر درست نہیں';
+    if (!/^03\d{9}$/.test(phone)) return ti('validation.phoneInvalid');
     return null;
   };
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.role.trim()) { setFormError('Name aur Role zaroori hain'); return; }
+    if (!form.name.trim() || !form.role.trim()) { setFormError(ti('validation.nameRoleRequired')); return; }
     const phoneError = validatePhone(form.phone);
     if (phoneError) { setFormError(phoneError); return; }
     if (wantsPortal && form.email) {
-      const emailError = validateEmail(form.email);
+      const emailError = validateEmail(form.email, { t: ti });
       if (emailError) { setFormError(emailError); return; }
     }
     if (wantsPortal && form.password) {
       if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
-        setFormError('Strong password enter karein — kam az kam 8 characters, letters aur numbers dono');
+        setFormError(ti('validation.passwordWeak'));
         return;
       }
     }
@@ -83,35 +88,35 @@ const WorkerDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Is worker ko delete karein? Yeh permanently remove ho jayega.')) return;
+    if (!window.confirm(ti('validation.confirmDeleteWorker'))) return;
     setDeleting(true);
     try {
       await deleteWorker(worker._id);
       navigate('/workers');
     } catch {
-      alert('Failed to delete worker.');
+      alert(t('Failed to delete worker.', 'ورکر حذف نہیں ہو سکا۔'));
       setDeleting(false);
     }
   };
 
-  const getCustomer = (cid) => customers.find(c => c._id?.toString() === cid?.toString())?.name || 'Unknown';
+  const getCustomer = (cid) => tn(customers.find(c => c._id?.toString() === cid?.toString())?.name || t('Unknown', 'نامعلوم'));
 
   if (loading) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">Loading Worker...</p>
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">{t('Loading Worker...', 'ورکر لوڈ ہو رہا ہے...')}</p>
       </div>
     );
   }
 
   if (!worker) {
     return (
-      <div className="glass-card p-16 rounded-[3rem] text-center space-y-4">
+      <div className="glass-card p-16 rounded-xl text-center space-y-4">
         <HardHat size={48} className="mx-auto text-slate-300" />
-        <h3 className="text-2xl font-black text-slate-400 uppercase tracking-tighter">Worker not found</h3>
-        <button onClick={() => navigate('/workers')} className="primary-btn px-8 py-3 rounded-2xl inline-flex items-center gap-2">
-          <ArrowLeft size={16} /> Back to Workers
+        <h3 className="text-2xl font-black text-slate-400 uppercase tracking-tighter">{t('Worker not found', 'ورکر نہیں ملا')}</h3>
+        <button onClick={() => navigate('/workers')} className="primary-btn px-8 py-3 rounded-xl inline-flex items-center gap-2">
+          <ArrowLeft size={16} /> {t('Back to Workers', 'واپس')}
         </button>
       </div>
     );
@@ -140,7 +145,7 @@ const WorkerDetail = () => {
           onClick={() => navigate('/workers')}
           className="flex items-center gap-2 text-slate-500 hover:text-primary font-bold text-sm transition-colors"
         >
-          <ArrowLeft size={16} /> Back to Workers / واپس
+          <ArrowLeft size={16} /> {t('Back to Workers', 'واپس')}
         </button>
         {!editing && (
           <div className="flex gap-3">
@@ -148,14 +153,14 @@ const WorkerDetail = () => {
               onClick={openEdit}
               className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-100 transition-all"
             >
-              <Pencil size={15} /> Edit / ترمیم
+              <Pencil size={15} /> {t('Edit', 'ترمیم')}
             </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
               className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 font-bold text-sm rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
             >
-              {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Delete / حذف کریں
+              {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} {t('Delete', 'حذف کریں')}
             </button>
           </div>
         )}
@@ -167,26 +172,26 @@ const WorkerDetail = () => {
           initial={{ opacity: 0, y: -10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] space-y-6"
+          className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-6"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Edit Worker / ترمیم کریں</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">{t('Edit Worker', 'ترمیم کریں')}</h2>
             <button onClick={closeEdit} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-500 transition-colors"><X size={18} /></button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Name / نام *</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Name', 'نام')} *</label>
               <input type="text" className="input-field" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Role / کام *</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Role', 'کام')} *</label>
               <select className="input-field appearance-none cursor-pointer" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                <option value="">Select role...</option>
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                <option value="">{t('Select role...', 'کام منتخب کریں...')}</option>
+                {ROLES.map(r => <option key={r} value={r}>{td(r)}</option>)}
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Phone / فون</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Phone', 'فون')}</label>
               <input type="tel" inputMode="numeric" className="input-field font-mono tracking-wider" placeholder="03XXXXXXXXX" value={form.phone} onChange={handlePhoneChange} maxLength={11} />
             </div>
           </div>
@@ -195,31 +200,31 @@ const WorkerDetail = () => {
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <input type="checkbox" checked={wantsPortal} onChange={e => setWantsPortal(e.target.checked)} className="w-5 h-5 accent-primary rounded cursor-pointer" />
               <span className="flex items-center gap-2 text-sm font-black text-slate-600 uppercase tracking-widest">
-                <KeyRound size={16} className="text-primary" /> Portal Access / پورٹل رسائی
+                <KeyRound size={16} className="text-primary" /> {t('Portal Access', 'پورٹل رسائی')}
               </span>
             </label>
             {wantsPortal && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Mail size={13} /> Email</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Mail size={13} /> {t('Email', 'ای میل')}</label>
                   <input type="email" className="input-field" placeholder="worker@gmail.com" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Lock size={13} /> Password</label>
-                  <input type="password" className="input-field" placeholder="Leave blank to keep current" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Lock size={13} /> {t('Password', 'پاس ورڈ')}</label>
+                  <input type="password" className="input-field" placeholder={t('Leave blank to keep current', 'موجودہ برقرار رکھنے کے لیے خالی چھوڑیں')} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
                 </div>
               </div>
             )}
           </div>
 
           {formError && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold border border-red-100">⚠ {formError}</div>
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100">⚠ {formError}</div>
           )}
           <div className="flex gap-4">
-            <button onClick={handleSave} disabled={saving} className="primary-btn px-10 py-4 rounded-2xl flex items-center gap-2 disabled:opacity-60">
-              {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Update
+            <button onClick={handleSave} disabled={saving} className="primary-btn px-10 py-4 rounded-xl flex items-center gap-2 disabled:opacity-60">
+              {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} {t('Update', 'اپڈیٹ کریں')}
             </button>
-            <button onClick={closeEdit} className="px-10 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all">Cancel</button>
+            <button onClick={closeEdit} className="px-10 py-4 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all">{t('Cancel', 'منسوخ کریں')}</button>
           </div>
         </motion.div>
       )}
@@ -229,42 +234,42 @@ const WorkerDetail = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl shadow-primary/5"
+        className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl shadow-2xl shadow-primary/5"
       >
         <div className="flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-[2rem] sm:rounded-[2.5rem] flex items-center justify-center text-white text-3xl sm:text-5xl font-black shadow-2xl shadow-primary/30 -rotate-3 flex-shrink-0">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-xl flex items-center justify-center text-white text-3xl sm:text-5xl font-black shadow-2xl shadow-primary/30 -rotate-3 flex-shrink-0">
             {worker.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 space-y-4 min-w-0">
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter uppercase break-words">{worker.name}</h1>
-              <p className="text-primary font-bold text-sm sm:text-base mt-1">{worker.role}</p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter uppercase break-words">{tn(worker.name)}</h1>
+              <p className="text-primary font-bold text-sm sm:text-base mt-1">{td(worker.role)}</p>
             </div>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+            <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3">
               {worker.phone && (
-                <span className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl text-slate-600 font-medium text-sm"><Phone size={16} className="text-primary" /> {worker.phone}</span>
+                <span className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-slate-600 font-medium text-xs sm:text-sm"><Phone size={13} className="text-primary sm:hidden" /><Phone size={16} className="text-primary hidden sm:block" /> {worker.phone}</span>
               )}
               {worker.email && (
-                <span className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl text-slate-600 font-medium text-sm"><Mail size={16} className="text-primary" /> {worker.email}</span>
+                <span className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-slate-600 font-medium text-xs sm:text-sm"><Mail size={13} className="text-primary sm:hidden" /><Mail size={16} className="text-primary hidden sm:block" /> {worker.email}</span>
               )}
               {worker.email ? (
-                <span className="text-[10px] font-black uppercase px-3 py-2 rounded-xl bg-indigo-100 text-indigo-700 flex items-center gap-1.5"><KeyRound size={12} /> Portal access</span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-indigo-100 text-indigo-700 flex items-center gap-1 sm:gap-1.5 whitespace-nowrap"><KeyRound size={11} /> {t('Portal access', 'پورٹل تک رسائی')}</span>
               ) : (
-                <span className="text-[10px] font-black uppercase px-3 py-2 rounded-xl bg-slate-100 text-slate-500">No login yet</span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-slate-100 text-slate-500 whitespace-nowrap">{t('No login yet', 'ابھی لاگ ان نہیں')}</span>
               )}
               {roleToStage(worker.role) && (
-                <span className="text-[10px] font-black uppercase px-3 py-2 rounded-xl bg-primary/10 text-primary">Handles: {roleToStage(worker.role)}</span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-primary/10 text-primary whitespace-nowrap">{t('Handles', 'ذمہ داری')}: {ti(`stages.${roleToStage(worker.role)}`, { defaultValue: roleToStage(worker.role) })}</span>
               )}
             </div>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
-              <span className="text-xs font-black uppercase px-4 py-2 rounded-xl bg-blue-100 text-blue-700">{assigned.length} active</span>
-              <span className="text-xs font-black uppercase px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700">{history.length} completed</span>
+            <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3 pt-2">
+              <span className="text-[10px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-blue-100 text-blue-700">{assigned.length} {t('active', 'فعال')}</span>
+              <span className="text-[10px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-emerald-100 text-emerald-700">{history.length} {t('completed', 'مکمل')}</span>
               {liveOrder ? (
-                <span className={`text-xs font-black uppercase px-4 py-2 rounded-xl border ${getWorkerStatusColor(liveOrder)}`}>
-                  {liveOrder.workerStatus === 'Blocked' ? '⚠ ' : '● '}{getWorkerStatusLabel(liveOrder)}
+                <span className={`text-[10px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border ${getWorkerStatusColor(liveOrder)}`}>
+                  {liveOrder.workerStatus === 'Blocked' ? '⚠ ' : '● '}{getWorkerStatusLabel(liveOrder, language)}
                 </span>
               ) : (
-                <span className="text-xs font-black uppercase px-4 py-2 rounded-xl bg-slate-100 text-slate-400">Idle / خالی</span>
+                <span className="text-[10px] sm:text-xs font-black uppercase px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-100 text-slate-400">{t('Idle', 'خالی')}</span>
               )}
             </div>
           </div>
@@ -273,10 +278,10 @@ const WorkerDetail = () => {
 
       {/* Active / assigned work */}
       {assigned.length > 0 && (
-        <div className="glass-card rounded-[2.5rem] overflow-hidden">
+        <div className="glass-card rounded-xl overflow-hidden">
           <div className="p-6 sm:p-8 bg-primary/5 border-b border-primary/10">
             <h2 className="text-lg font-black text-primary uppercase tracking-tighter flex items-center gap-2">
-              <ClipboardList size={18} /> Assigned Work / تفویض شدہ کام ({assigned.length})
+              <ClipboardList size={18} /> {t('Assigned Work', 'تفویض شدہ کام')} ({assigned.length})
             </h2>
           </div>
           <div className="p-6 sm:p-8 space-y-3">
@@ -284,21 +289,21 @@ const WorkerDetail = () => {
               <div
                 key={o._id}
                 onClick={() => navigate(`/order/${o._id}`)}
-                className="flex items-center gap-3 p-4 bg-white rounded-2xl hover:shadow-md transition-all cursor-pointer border border-slate-100"
+                className="flex items-center gap-3 p-4 bg-white rounded-xl hover:shadow-md transition-all cursor-pointer border border-slate-100"
               >
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
                   <Scissors size={16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 text-sm uppercase truncate">{o.orderType}</p>
+                  <p className="font-black text-slate-800 text-sm uppercase truncate">{td(o.orderType)}</p>
                   <p className="text-xs text-slate-500">{getCustomer(o.customerId)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 uppercase whitespace-nowrap">
-                    {o.workStage || 'Active'}
+                    {o.workStage ? ti(`stages.${o.workStage}`, { defaultValue: o.workStage }) : t('Active', 'فعال')}
                   </span>
                   <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase whitespace-nowrap ${getWorkerStatusColor(o)}`}>
-                    {o.workerStatus === 'Blocked' ? '⚠ ' : ''}{getWorkerStatusLabel(o)}
+                    {o.workerStatus === 'Blocked' ? '⚠ ' : ''}{getWorkerStatusLabel(o, language)}
                   </span>
                 </div>
               </div>
@@ -308,25 +313,25 @@ const WorkerDetail = () => {
       )}
 
       {/* Full work history */}
-      <div className="glass-card rounded-[3rem] overflow-hidden min-w-0">
+      <div className="glass-card rounded-xl overflow-hidden min-w-0">
         <div className="p-8 bg-emerald-50 border-b border-emerald-100">
           <h2 className="text-xl font-black text-emerald-700 uppercase tracking-tighter flex items-center gap-2">
-            <History size={20} /> Work History / کام کی تاریخ
+            <History size={20} /> {t('Work History', 'کام کی تاریخ')}
           </h2>
         </div>
 
         {history.length === 0 ? (
           <div className="p-12 text-center text-slate-400 font-medium">
-            Is worker ki abhi tak koi mukammal history nahi hai.
+            {t('This worker has no completed history yet.', 'اس ورکر کی ابھی تک کوئی مکمل تاریخ نہیں ہے۔')}
           </div>
         ) : (
           <div className="overflow-x-auto scrollbar-hide">
             <table className="w-full min-w-[560px] text-sm border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500">
-                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-8 py-3">Order</th>
-                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-4 py-3">Stage</th>
-                  <th className="text-right font-black uppercase text-[10px] tracking-widest px-8 py-3">Date</th>
+                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-8 py-3">{t('Order', 'آرڈر')}</th>
+                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-4 py-3">{t('Stage', 'مرحلہ')}</th>
+                  <th className="text-right font-black uppercase text-[10px] tracking-widest px-8 py-3">{t('Date', 'تاریخ')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,12 +342,12 @@ const WorkerDetail = () => {
                     className="border-t border-slate-100 hover:bg-emerald-50/40 cursor-pointer transition-colors"
                   >
                     <td className="px-8 py-3 align-top">
-                      <p className="font-black text-slate-800 uppercase whitespace-nowrap">{entry.order.orderType}</p>
+                      <p className="font-black text-slate-800 uppercase whitespace-nowrap">{td(entry.order.orderType)}</p>
                       <p className="text-slate-500 font-medium text-xs whitespace-nowrap mt-0.5">{getCustomer(entry.order.customerId)}</p>
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 whitespace-nowrap">
-                        {entry.stage}
+                        {ti(`stages.${entry.stage}`, { defaultValue: entry.stage })}
                       </span>
                     </td>
                     <td className="px-8 py-3 text-right text-slate-400 font-medium whitespace-nowrap">
@@ -356,26 +361,14 @@ const WorkerDetail = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-between gap-4 px-8 py-5 bg-slate-50 border-t border-slate-100">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Page {safePage} of {totalPages} · {history.length} entries
+                  {t('Page', 'صفحہ')} {safePage} {t('of', 'از')} {totalPages} · {history.length} {t('entries', 'اندراجات')}
                 </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={safePage === 1}
-                    className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black uppercase hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    ← Previous
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={safePage === totalPages}
-                    className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black uppercase hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Next →
-                  </button>
-                </div>
+                <PaginationControls
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPrev={() => setPage(p => Math.max(1, p - 1))}
+                  onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+                />
               </div>
             )}
           </div>

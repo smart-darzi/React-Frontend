@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useLocalState } from '../context/useLocalState';
+import { useLanguage } from '../context/LanguageContext';
 import ConfirmModal from '../components/ConfirmModal';
 import BlockReportModal from '../components/BlockReportModal';
 import DesignDetailModal from '../components/DesignDetailModal';
+import DesignThumb from '../components/DesignThumb';
 import PortalFooter from '../components/PortalFooter';
 import { HardHat, LogOut, Scissors, User, Loader2, PackageCheck, Clock3, Lock, OctagonAlert, RotateCcw, MessageSquareWarning, ClipboardList, ChevronDown, Maximize2, Hash, UserCog } from 'lucide-react';
 import { getEffectiveStages, getWorkerHistory, getWorkerStatus, getWorkerStatusLabel, getWorkerStatusColor, isWorkerStatusActive, isMasterTailorRole } from '../utils/stages';
+import PaginationControls from '../components/PaginationControls';
 
 // Small read-only label/value pair for the "Full Order Details" panel —
 // skips rendering entirely if there's no value, so optional fields (e.g.
@@ -15,7 +19,7 @@ import { getEffectiveStages, getWorkerHistory, getWorkerStatus, getWorkerStatusL
 const DetailField = ({ label, value }) => {
   if (value === undefined || value === null || value === '') return null;
   return (
-    <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+    <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
       <p className="text-xs font-bold text-slate-700 break-words mt-0.5">{value}</p>
     </div>
@@ -47,21 +51,27 @@ const WORKER_STATUS_META = {
 
 // Time-based greeting — small touch that makes the header feel like it's
 // actually addressing the person who's logged in, not just labeling a role.
-const getGreeting = () => {
+// Returns an i18next key suffix (workerPortal.greeting.<key>); the actual
+// translated text is looked up at render time via useTranslation.
+const getGreetingKey = () => {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
 };
 
 const WorkerPortal = () => {
   const { currentWorker, workerLogout, orders, customers, designs, updateWorkerStatus, loading } = useLocalState();
   const navigate = useNavigate();
+  const { language, setLanguage, td, tn } = useLanguage();
+  const { t } = useTranslation();
   const [confirmModal, setConfirmModal] = useState(null);
   const [blockModalOrder, setBlockModalOrder] = useState(null);
   const [reportingBlock, setReportingBlock] = useState(false);
   const [blockError, setBlockError] = useState('');
   const [busy, setBusy] = useState(false);
+  // Still used to open the read-only design detail modal when a worker taps
+  // an order's reference-design thumbnail (see the order card below).
   const [viewingDesign, setViewingDesign] = useState(null);
   // ✅ Work History pagination — mirrors the Admin's Workers page (3 entries
   // per page), so a worker with a long history isn't stuck scrolling one
@@ -76,7 +86,7 @@ const WorkerPortal = () => {
 
   const getCustomerName = (id) => {
     const c = customers.find(c => c._id === id);
-    return c ? c.name : 'Unknown Customer';
+    return c ? tn(c.name) : t('viewOrders.unknownCustomer');
   };
 
   // Compare as strings — assignedWorkerId can come back as a Mongo ObjectId
@@ -144,7 +154,7 @@ const WorkerPortal = () => {
         ...extra,
       });
     } catch (error) {
-      alert('Status update nahi ho saka: ' + (error.response?.data?.error || error.message));
+      alert(t('workerPortal.statusUpdateFailed', { error: error.response?.data?.error || error.message }));
     } finally {
       setStatusBusyId(null);
     }
@@ -171,7 +181,7 @@ const WorkerPortal = () => {
       });
       setBlockModalOrder(null);
     } catch (error) {
-      setBlockError(error.response?.data?.error || error.message || 'Report bhejne mein masla hua, dobara koshish karein.');
+      setBlockError(error.response?.data?.error || error.message || t('workerPortal.couldNotSendReport'));
     } finally {
       setReportingBlock(false);
     }
@@ -188,7 +198,7 @@ const WorkerPortal = () => {
       });
       setConfirmModal(null);
     } catch (error) {
-      alert('Failed to notify admin: ' + (error.response?.data?.error || error.message));
+      alert(t('workerPortal.couldNotNotifyAdmin', { error: error.response?.data?.error || error.message }));
     } finally {
       setBusy(false);
     }
@@ -198,7 +208,7 @@ const WorkerPortal = () => {
     return (
       <div className="h-screen flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">Loading...</p>
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">{t('workerPortal.loading')}</p>
       </div>
     );
   }
@@ -210,37 +220,55 @@ const WorkerPortal = () => {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative rounded-[2rem] overflow-hidden"
+          className="relative rounded-xl overflow-hidden"
           style={{ background: 'linear-gradient(155deg, #10707F 0%, #0E606E 50%, #0A4A55 100%)', boxShadow: '0 20px 40px -20px rgba(10,74,85,0.5)' }}
         >
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }} />
           <div className="relative flex items-center justify-between gap-4 p-6 md:p-7">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-2xl flex items-center justify-center text-white flex-shrink-0">
+              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                 <HardHat size={22} />
               </div>
               <div className="min-w-0">
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{currentWorker?.role || 'Worker'} Portal</p>
+                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('workerPortal.portalLabel')}</p>
                 <h1 className="font-display text-xl font-extrabold text-white truncate">
-                  {getGreeting()}, {currentWorker?.name?.split(' ')[0] || 'there'}
+                  {t(`workerPortal.greeting.${getGreetingKey()}`)}, {tn(currentWorker?.name?.split(' ')[0]) || 'there'}
                 </h1>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all flex-shrink-0"
-            >
-              <LogOut size={16} /> Logout
-            </button>
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              <div className="flex items-center bg-white/15 border border-white/20 rounded-xl p-1 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('ur')}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                >
+                  اردو
+                </button>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all flex-shrink-0"
+              >
+                <LogOut size={16} /> {t('workerPortal.logout')}
+              </button>
+            </div>
           </div>
 
           {/* ── Section tabs — switches between "Assigned Orders" and "Work
               History" as two separate views, rather than anchoring a scroll
               to sections stacked in one long page. ── */}
-          <nav className="relative flex items-center gap-1 px-4 md:px-5 border-t border-white/15 overflow-x-auto">
+          <nav className="relative flex items-center gap-1 px-4 md:px-5 border-t border-white/15 overflow-x-auto scrollbar-hide">
             {[
-              { id: 'assigned-orders', label: 'Assigned Orders' },
-              { id: 'work-history', label: 'Work History' },
+              { id: 'assigned-orders', label: t('workerPortal.tabs.assignedOrders') },
+              { id: 'work-history', label: t('workerPortal.tabs.workHistory') },
             ].map(({ id, label }) => (
               <button
                 key={id}
@@ -259,15 +287,15 @@ const WorkerPortal = () => {
 
         {activeTab === 'assigned-orders' && (
         <div>
-          <SectionHeading eyebrow={`${myOrders.length} assigned`}>My Assigned Orders / میرے آرڈرز</SectionHeading>
+          <SectionHeading eyebrow={`${myOrders.length} ${t('workerPortal.assignedCount')}`}>{t('workerPortal.assignedOrdersHeading')}</SectionHeading>
 
           {myOrders.length === 0 ? (
-            <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+            <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
               <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                 <Scissors size={26} />
               </div>
-              <h3 className="text-lg font-bold text-slate-400">No orders assigned yet</h3>
-              <p className="text-slate-400 text-sm font-medium mt-1.5">Abhi tak koi order assign nahi hua.</p>
+              <h3 className="text-lg font-bold text-slate-400">{t('workerPortal.noOrdersTitle')}</h3>
+              <p className="text-slate-400 text-sm font-medium mt-1.5">{t('workerPortal.noOrdersHint')}</p>
             </div>
           ) : (
             <div className="space-y-5">
@@ -295,7 +323,7 @@ const WorkerPortal = () => {
                     initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: cardIndex * 0.05, ease: 'easeOut' }}
-                    className="relative bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                    className="relative bg-white rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                   >
                     <div className="p-6 space-y-4">
                       {/* ── Title row: icon tinted by status, name, and a single
@@ -310,7 +338,7 @@ const WorkerPortal = () => {
                             <Scissors size={19} />
                           </div>
                           <div className="min-w-0">
-                            <h3 className="font-display text-lg font-bold text-slate-900 truncate">{order.orderType}</h3>
+                            <h3 className="font-display text-lg font-bold text-slate-900 truncate">{td(order.orderType)}</h3>
                             <p className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mt-0.5">
                               <User size={12} /> {getCustomerName(order.customerId)}
                             </p>
@@ -318,8 +346,8 @@ const WorkerPortal = () => {
                         </div>
 
                         {awaitingAdmin ? (
-                          <span className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-bold rounded-lg whitespace-nowrap">
-                            <Clock3 size={13} /> Admin ki tasdeeq ka intezar
+                          <span className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-bold rounded-xl whitespace-nowrap">
+                            <Clock3 size={13} /> {t('workerPortal.awaitingAdminConfirmation')}
                           </span>
                         ) : (
                           <span
@@ -327,7 +355,7 @@ const WorkerPortal = () => {
                             style={{ color: (WORKER_STATUS_META[workerStatus] || {}).color || '#64748B' }}
                           >
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: (WORKER_STATUS_META[workerStatus] || {}).color || '#94A3B8' }} />
-                            {getWorkerStatusLabel(order)}
+                            {getWorkerStatusLabel(order, language)}
                           </span>
                         )}
                       </div>
@@ -335,36 +363,36 @@ const WorkerPortal = () => {
                       {/* ── Secondary tags: stage, re-assigned, wait-your-turn —
                           quieter than the primary status so they don't compete. ── */}
                       <div className="flex flex-wrap items-center gap-1.5 pl-[3.25rem]">
-                        <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-500 border border-slate-100">
-                          {order.workStage || 'Not Started'}
+                        <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-500 border border-slate-100">
+                          {order.workStage ? t(`stages.${order.workStage}`, { defaultValue: order.workStage }) : t('workerPortal.notStarted')}
                         </span>
                         {isMasterTailor && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-violet-50 text-violet-600 border border-violet-100">
-                            <UserCog size={11} /> Master Tailor
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-violet-50 text-violet-600 border border-violet-100">
+                            <UserCog size={11} /> {t('workerPortal.masterTailor')}
                           </span>
                         )}
                         {order.wasReassigned && (
-                          <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 border border-red-200">
-                            Re-Assigned / دوبارہ
+                          <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 border border-red-200">
+                            {t('workerPortal.reAssigned')}
                           </span>
                         )}
                         {lockedByOtherOrder && workerStatus === 'Pending' && (
-                          <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-400">
-                            Wait Your Turn
+                          <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-400">
+                            {t('workerPortal.waitYourTurn')}
                           </span>
                         )}
                       </div>
 
                       {workerStatus === 'Blocked' && order.workerBlockReason && (
-                        <p className="text-red-500 text-xs font-bold pl-[3.25rem]">Wajah: {order.workerBlockReason}</p>
+                        <p className="text-red-500 text-xs font-bold pl-[3.25rem]">{t('workerPortal.blockReason', { reason: order.workerBlockReason })}</p>
                       )}
                       {workerStatus === 'Blocked' && order.workerWantsGuidance && !order.adminGuidance && (
-                        <p className="text-amber-500 text-xs font-bold pl-[3.25rem]">Aapne Admin ki guidelines mangi hain — unke bhejne ka intezar hai.</p>
+                        <p className="text-amber-500 text-xs font-bold pl-[3.25rem]">{t('workerPortal.waitingForGuidanceRequest')}</p>
                       )}
                       {workerStatus === 'Blocked' && order.adminGuidance && (
-                        <div className="flex items-start gap-1.5 ml-[3.25rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-2 rounded-lg">
+                        <div className="flex items-start gap-1.5 ml-[3.25rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-2 rounded-xl">
                           <MessageSquareWarning size={14} className="mt-0.5 flex-shrink-0" />
-                          <span>Admin ki guidance: {order.adminGuidance}</span>
+                          <span>{t('workerPortal.adminGuidance', { guidance: language === 'ur' ? (order.adminGuidanceUrdu || order.adminGuidance) : order.adminGuidance })}</span>
                         </div>
                       )}
 
@@ -380,6 +408,15 @@ const WorkerPortal = () => {
                           : null;
                         const extraCount = linkedDesign?.images?.length > 1 ? linkedDesign.images.length - 1 : 0;
                         const Wrapper = linkedDesign ? 'button' : 'div';
+                        // ✅ Pick ONE language's name to show, matching the
+                        // toggle — never English name + Urdu name mixed on
+                        // the same card. Prefer the live catalog design's
+                        // name (kept in sync if it's ever edited), falling
+                        // back to whatever was denormalized onto the order
+                        // itself if the catalog design was later deleted.
+                        const displayName = language === 'ur'
+                          ? (linkedDesign?.nameUrdu || order.selectedDesignNameUrdu || linkedDesign?.name || order.selectedDesignName)
+                          : (linkedDesign?.name || order.selectedDesignName);
                         return (
                           <Wrapper
                             type={linkedDesign ? 'button' : undefined}
@@ -387,10 +424,11 @@ const WorkerPortal = () => {
                             className={`flex items-center gap-3 ml-[3.25rem] bg-slate-50 border border-slate-100 rounded-xl p-2.5 pr-4 text-left ${linkedDesign ? 'hover:bg-slate-100 hover:border-slate-200 transition-colors cursor-pointer' : ''}`}
                           >
                             <div className="relative flex-shrink-0">
-                              <img
+                              <DesignThumb
                                 src={order.selectedDesignImage}
-                                alt={order.selectedDesignName || 'Design'}
-                                className="w-11 h-11 rounded-lg object-cover"
+                                alt={displayName || 'Design'}
+                                className="w-11 h-11 rounded-xl object-cover"
+                                iconSize={16}
                               />
                               {extraCount > 0 && (
                                 <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-black/60 text-white">
@@ -399,11 +437,11 @@ const WorkerPortal = () => {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Reference Design</p>
-                              <p className="text-xs font-bold text-slate-700 truncate">{order.selectedDesignName}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t('workerPortal.referenceDesign')}</p>
+                              <p dir={language === 'ur' && (linkedDesign?.nameUrdu || order.selectedDesignNameUrdu) ? 'rtl' : 'ltr'} className="text-xs font-bold text-slate-700 truncate">{displayName}</p>
                               {linkedDesign && (
                                 <p className="text-[10px] font-bold text-primary flex items-center gap-1 mt-0.5">
-                                  <Maximize2 size={10} /> Sab tasveerein dekhein
+                                  <Maximize2 size={10} /> {t('workerPortal.viewAllPhotos')}
                                 </p>
                               )}
                             </div>
@@ -422,23 +460,23 @@ const WorkerPortal = () => {
                           className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-wide hover:text-primary-dark transition-colors"
                         >
                           <ClipboardList size={13} />
-                          {isExpanded ? 'Hide Order Details' : 'View Full Order Details'}
+                          {isExpanded ? t('workerPortal.hideOrderDetails') : t('workerPortal.viewFullOrderDetails')}
                           <ChevronDown size={13} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                         {isExpanded && (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-3">
-                            <DetailField label="Category" value={order.orderCategory} />
-                            <DetailField label="Neck" value={order.neckStyle} />
-                            <DetailField label="Cuff" value={order.cuffStyle} />
-                            <DetailField label="Lap" value={order.lapStyle} />
-                            <DetailField label="Pant" value={order.pantStyle} />
-                            <DetailField label="Pocket" value={order.pocketStyle} />
-                            <DetailField label="Button" value={order.buttonStyle} />
-                            <DetailField label="Elastic" value={order.elastic} />
-                            <DetailField label="Embroidery" value={order.embroidery} />
-                            <DetailField label="Stitch Style" value={order.style} />
-                            <DetailField label="Book #" value={order.bookNumber} />
-                            <DetailField label="Design #" value={order.designNumber} />
+                            <DetailField label={t('workerPortal.fields.category')} value={td(order.orderCategory)} />
+                            <DetailField label={t('workerPortal.fields.neck')} value={td(order.neckStyle)} />
+                            <DetailField label={t('workerPortal.fields.cuff')} value={td(order.cuffStyle)} />
+                            <DetailField label={t('workerPortal.fields.lap')} value={td(order.lapStyle)} />
+                            <DetailField label={t('workerPortal.fields.pant')} value={td(order.pantStyle)} />
+                            <DetailField label={t('workerPortal.fields.pocket')} value={td(order.pocketStyle)} />
+                            <DetailField label={t('workerPortal.fields.button')} value={td(order.buttonStyle)} />
+                            <DetailField label={t('workerPortal.fields.elastic')} value={td(order.elastic)} />
+                            <DetailField label={t('workerPortal.fields.embroidery')} value={td(order.embroidery)} />
+                            <DetailField label={t('workerPortal.fields.stitchStyle')} value={td(order.style)} />
+                            <DetailField label={t('workerPortal.fields.bookNumber')} value={order.bookNumber} />
+                            <DetailField label={t('workerPortal.fields.designNumber')} value={order.designNumber} />
                           </div>
                         )}
                       </div>
@@ -454,9 +492,9 @@ const WorkerPortal = () => {
                           lockedByOtherOrder ? (
                             <div
                               className="flex items-center gap-2 text-slate-400 font-bold text-sm"
-                              title="Pehle apna maujooda order mukammal karein"
+                              title={t('workerPortal.completeCurrentOrderFirstTitle')}
                             >
-                              <Lock size={16} /> Pehle Current Order Mukammal Karein
+                              <Lock size={16} /> {t('workerPortal.completeCurrentOrderFirst')}
                             </div>
                           ) : (
                             <button
@@ -467,8 +505,8 @@ const WorkerPortal = () => {
                               {isBusy
                                 ? <Loader2 className="animate-spin" size={16} />
                                 : (isMasterTailor && stageIndex > 0
-                                    ? `Continue — ${order.workStage} / جاری رکھیں`
-                                    : 'Start Work / کام شروع کریں')}
+                                    ? t('workerPortal.continueStage', { stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }) })
+                                    : t('workerPortal.startWork'))}
                             </button>
                           )
                         ) : workerStatus === 'In-Progress' ? (
@@ -478,20 +516,20 @@ const WorkerPortal = () => {
                               disabled={isBusy}
                               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-sm disabled:opacity-60"
                             >
-                              {isBusy ? <Loader2 className="animate-spin" size={16} /> : 'Mark Completed — Ready for Review'}
+                              {isBusy ? <Loader2 className="animate-spin" size={16} /> : t('workerPortal.markCompletedReview')}
                             </button>
                             <button
                               onClick={() => handleReportBlock(order)}
                               disabled={isBusy}
                               className="flex items-center gap-2 px-5 py-2.5 bg-white border border-red-200 hover:bg-red-50 text-red-500 font-bold text-sm rounded-xl disabled:opacity-60"
                             >
-                              <OctagonAlert size={16} /> Report Block / رکاوٹ
+                              <OctagonAlert size={16} /> {t('workerPortal.reportBlock')}
                             </button>
                           </div>
                         ) : workerStatus === 'Blocked' ? (
                           order.workerWantsGuidance && !order.adminGuidance ? (
                             <div className="flex items-center gap-2 text-amber-600 font-bold text-sm">
-                              <Clock3 size={16} /> Guidelines ka intezar
+                              <Clock3 size={16} /> {t('workerPortal.waitingForGuidelines')}
                             </div>
                           ) : (
                             <div className="flex flex-wrap items-center gap-2.5">
@@ -500,14 +538,14 @@ const WorkerPortal = () => {
                                 disabled={isBusy}
                                 className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-sm disabled:opacity-60"
                               >
-                                {isBusy ? <Loader2 className="animate-spin" size={16} /> : 'Mark Completed — Ready for Review'}
+                                {isBusy ? <Loader2 className="animate-spin" size={16} /> : t('workerPortal.markCompletedReview')}
                               </button>
                               <button
                                 onClick={() => advanceWorkerStatus(order, 'In-Progress')}
                                 disabled={isBusy}
                                 className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-sm rounded-xl disabled:opacity-60"
                               >
-                                <RotateCcw size={16} /> Resume Work
+                                <RotateCcw size={16} /> {t('workerPortal.resumeWork')}
                               </button>
                             </div>
                           )
@@ -516,35 +554,41 @@ const WorkerPortal = () => {
                             <button
                               onClick={() => setConfirmModal({
                                 order,
-                                title: order.wasReassigned ? 'Dobara Mukammal? / Redo Finished?' : 'Finish Crafting?',
+                                title: order.wasReassigned ? t('workerPortal.redoFinishedTitle') : t('workerPortal.finishCraftingTitle'),
                                 message: order.wasReassigned
-                                  ? `Admin ko batayein ke "${order.orderType}" dobara (re-assign ke baad) mukammal ho gaya hai?`
-                                  : `Admin ko batayein ke "${order.orderType}" mukammal ho gaya hai?`,
+                                  ? t('workerPortal.confirmFinishRedoMessage', { orderType: td(order.orderType) })
+                                  : t('workerPortal.confirmFinishMessage', { orderType: td(order.orderType) }),
                                 tone: 'success',
                               })}
                               className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-sm"
                             >
-                              <PackageCheck size={16} /> {order.wasReassigned ? 'Finish Crafting (Redo)' : 'Finish Crafting'}
+                              <PackageCheck size={16} /> {order.wasReassigned ? t('workerPortal.finishCraftingRedo') : t('workerPortal.finishCrafting')}
                             </button>
                           ) : (
                             <button
                               onClick={() => setConfirmModal({
                                 order,
                                 title: isMasterTailor
-                                  ? `${order.workStage} Mukammal — ${effectiveStages[stageIndex + 1]} Shuru Karein?`
-                                  : (order.wasReassigned ? `${order.workStage} Dobara Done?` : `${order.workStage} Done?`),
+                                  ? t('workerPortal.masterStageTitle', { stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }), nextStage: t(`stages.${effectiveStages[stageIndex + 1]}`, { defaultValue: effectiveStages[stageIndex + 1] }) })
+                                  : (order.wasReassigned ? t('workerPortal.stageDoneRedoTitle', { stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }) }) : t('workerPortal.stageDoneTitle', { stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }) })),
                                 message: isMasterTailor
-                                  ? `"${order.orderType}" ka ${order.workStage} stage mukammal karke seedha ${effectiveStages[stageIndex + 1]} shuru karna chahti/chahte hain? Admin ko is waqt inform nahi hoga — sirf aakhri stage par unhein overall kaam dikhega.`
+                                  ? t('workerPortal.confirmMasterStageMessage', { orderType: td(order.orderType), stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }), nextStage: t(`stages.${effectiveStages[stageIndex + 1]}`, { defaultValue: effectiveStages[stageIndex + 1] }) })
                                   : (order.wasReassigned
-                                      ? `Admin ko batayein ke "${order.orderType}" ka ${order.workStage} stage dobara (re-assign ke baad) mukammal ho gaya hai?`
-                                      : `Admin ko batayein ke "${order.orderType}" ka ${order.workStage} stage mukammal ho gaya hai?`),
+                                      ? t('workerPortal.confirmStageRedoMessage', { orderType: td(order.orderType), stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }) })
+                                      : t('workerPortal.confirmStageMessage', { orderType: td(order.orderType), stage: t(`stages.${order.workStage}`, { defaultValue: order.workStage }) })),
                                 tone: 'primary',
                               })}
                               className="primary-btn px-6 py-2.5 rounded-xl text-sm shadow-sm"
                             >
-                              {isMasterTailor
-                                ? `${order.workStage} Done → ${effectiveStages[stageIndex + 1]}`
-                                : (order.wasReassigned ? `Mark ${order.workStage} Done (Redo)` : `Mark ${order.workStage} Done`)}
+                              {(() => {
+                                const stageLabel = t(`stages.${order.workStage}`, { defaultValue: order.workStage });
+                                const nextStageLabel = t(`stages.${effectiveStages[stageIndex + 1]}`, { defaultValue: effectiveStages[stageIndex + 1] });
+                                return isMasterTailor
+                                  ? t('workerPortal.markStageDoneArrow', { stage: stageLabel, nextStage: nextStageLabel })
+                                  : (order.wasReassigned
+                                      ? t('workerPortal.markStageDoneRedo', { stage: stageLabel })
+                                      : t('workerPortal.markStageDone', { stage: stageLabel }));
+                              })()}
                             </button>
                           )
                         ) : null}
@@ -558,29 +602,30 @@ const WorkerPortal = () => {
         </div>
         )}
 
+
         {activeTab === 'work-history' && (
           <div>
-            <SectionHeading eyebrow={`${myHistory.length} completed`}>Work History / کام کی تاریخ</SectionHeading>
+            <SectionHeading eyebrow={`${myHistory.length} ${t('workerPortal.completedCount')}`}>{t('workerPortal.historyHeading')}</SectionHeading>
             {myHistory.length === 0 ? (
-              <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
                 <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                   <Hash size={26} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-400">Abhi tak koi kaam mukammal nahi hua</h3>
-                <p className="text-slate-400 text-sm font-medium mt-1.5">Jab aap koi stage complete karenge, wo yahan dikhega.</p>
+                <h3 className="text-lg font-bold text-slate-400">{t('workerPortal.noHistoryTitle')}</h3>
+                <p className="text-slate-400 text-sm font-medium mt-1.5">{t('workerPortal.noHistoryHint')}</p>
               </div>
             ) : (
-            <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm min-w-[640px]">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
                       <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">
-                        <span className="flex items-center gap-1.5"><Hash size={11} /> Order</span>
+                        <span className="flex items-center gap-1.5"><Hash size={11} /> {t('workerPortal.table.order')}</span>
                       </th>
-                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">Customer</th>
-                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">Stage</th>
-                      <th className="text-right font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">Date</th>
+                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.customer')}</th>
+                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.stage')}</th>
+                      <th className="text-right font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.date')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -593,11 +638,11 @@ const WorkerPortal = () => {
                         onClick={() => navigate(`/order/${order._id}`)}
                         className={`cursor-pointer transition-colors hover:bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
                       >
-                        <td className="px-6 py-3.5 font-bold text-slate-800 whitespace-nowrap">{order.orderType}</td>
+                        <td className="px-6 py-3.5 font-bold text-slate-800 whitespace-nowrap">{td(order.orderType)}</td>
                         <td className="px-6 py-3.5 text-slate-500 font-medium whitespace-nowrap">{getCustomerName(order.customerId)}</td>
                         <td className="px-6 py-3.5">
-                          <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 whitespace-nowrap">
-                            {stage}
+                          <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 whitespace-nowrap">
+                            {t(`stages.${stage}`, { defaultValue: stage })}
                           </span>
                         </td>
                         <td className="px-6 py-3.5 text-right text-slate-400 text-xs font-medium whitespace-nowrap">
@@ -612,26 +657,14 @@ const WorkerPortal = () => {
               {historyTotalPages > 1 && (
                 <div className="flex items-center justify-between gap-4 px-6 py-4 bg-slate-50 border-t border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Page {historySafePage} of {historyTotalPages}
+                    {t('workerPortal.pageOf', { current: historySafePage, total: historyTotalPages })}
                   </p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
-                      disabled={historySafePage === 1}
-                      className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600"
-                    >
-                      ← Previous
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setHistoryPage(p => Math.min(historyTotalPages, p + 1))}
-                      disabled={historySafePage === historyTotalPages}
-                      className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600"
-                    >
-                      Next →
-                    </button>
-                  </div>
+                  <PaginationControls
+                    currentPage={historySafePage}
+                    totalPages={historyTotalPages}
+                    onPrev={() => setHistoryPage(p => Math.max(1, p - 1))}
+                    onNext={() => setHistoryPage(p => Math.min(historyTotalPages, p + 1))}
+                  />
                 </div>
               )}
             </div>

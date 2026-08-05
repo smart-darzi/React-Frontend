@@ -67,7 +67,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
       >
         <div className="p-6 sm:p-8 flex items-center justify-between gap-3 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-white p-2.5 rounded-2xl shadow-lg rotate-3 group-hover:rotate-0 transition-all flex-shrink-0">
+            <div className="bg-white p-2.5 rounded-xl shadow-lg rotate-3 group-hover:rotate-0 transition-all flex-shrink-0">
               <Scissors className="text-primary w-6 h-6" />
             </div>
             <div className="min-w-0">
@@ -90,7 +90,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
               end={item.end}
               onClick={onClose}
               className={({ isActive }) => `
-                relative flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group
+                relative flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-300 group
                 ${isActive
                   ? 'bg-white text-primary font-bold'
                   : 'hover:bg-white/[0.06] text-white/70 hover:text-white'}
@@ -99,9 +99,6 @@ const Sidebar = ({ mobileOpen, onClose }) => {
             >
               {({ isActive }) => (
                 <>
-                  {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
-                  )}
                   <item.icon size={22} className={isActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'} />
                   <span className="text-sm tracking-wide leading-relaxed">{t(item.labelEn, item.labelUr)}</span>
                 </>
@@ -113,7 +110,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
         <div className="p-6 border-t border-white/10 flex-shrink-0">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-4 px-5 py-4 w-full rounded-2xl bg-red-500/10 hover:bg-red-500 text-red-100 hover:text-white transition-all duration-300 font-bold group"
+            className="flex items-center gap-4 px-5 py-4 w-full rounded-xl bg-red-500/10 hover:bg-red-500 text-red-100 hover:text-white transition-all duration-300 font-bold group"
           >
             <LogOut size={22} className="group-hover:-translate-x-1 transition-transform flex-shrink-0" />
             <span className="text-sm">{t('Logout', 'لاگ آؤٹ')}</span>
@@ -143,7 +140,7 @@ const Topbar = ({ onMenuClick }) => {
         >
           <Menu size={22} />
         </button>
-        <span className="hidden sm:flex w-10 h-10 rounded-2xl bg-primary/10 text-primary items-center justify-center flex-shrink-0">
+        <span className="hidden sm:flex w-10 h-10 rounded-xl bg-primary/10 text-primary items-center justify-center flex-shrink-0">
           <active.icon size={18} />
         </span>
         <div className="min-w-0">
@@ -159,13 +156,13 @@ const Topbar = ({ onMenuClick }) => {
         <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5">
           <button
             onClick={() => setLanguage('en')}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
           >
             English
           </button>
           <button
             onClick={() => setLanguage('ur')}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
           >
             اردو
           </button>
@@ -182,12 +179,16 @@ const Topbar = ({ onMenuClick }) => {
 // would just be duplication for duplication's sake, not a useful control.
 const AdminMenu = () => {
   const { currentUser, adminName, updateAdminName } = useLocalState();
-  const { t } = useLanguage();
+  const { t, tn } = useLanguage();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(adminName || '');
   const [saved, setSaved] = useState(false);
   const ref = useRef(null);
-  const displayName = adminName || currentUser?.name || currentUser?.email || 'Admin';
+  const displayName = adminName || currentUser?.name || currentUser?.email || t('Admin', 'ایڈمن');
+  // Don't transliterate an email fallback or the already-Urdu "Admin" label —
+  // only a real typed name (adminName / currentUser.name) should go through tn().
+  const isRealName = !!(adminName || currentUser?.name);
+  const shownName = isRealName ? tn(displayName) : displayName;
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -213,7 +214,7 @@ const AdminMenu = () => {
     <div className="relative flex-shrink-0" ref={ref}>
       <button
         onClick={() => setOpen(p => !p)}
-        className="flex items-center gap-2 sm:gap-2.5 bg-slate-50 border border-slate-200 rounded-2xl pl-2 pr-2.5 sm:pr-3.5 py-1.5 sm:py-2 hover:border-primary/30 hover:bg-primary/5 transition-all"
+        className="flex items-center gap-2 sm:gap-2.5 bg-slate-50 border border-slate-200 rounded-xl pl-2 pr-2.5 sm:pr-3.5 py-1.5 sm:py-2 hover:border-primary/30 hover:bg-primary/5 transition-all"
       >
         <span
           className="w-7 h-7 rounded-xl text-white flex items-center justify-center text-xs font-black flex-shrink-0"
@@ -222,22 +223,22 @@ const AdminMenu = () => {
           {displayName.charAt(0).toUpperCase()}
         </span>
         <span className="hidden sm:block text-xs font-bold text-slate-600 truncate max-w-[140px]">
-          {displayName}
+          {shownName}
         </span>
         <ChevronDown size={14} className={`hidden sm:block text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 z-50">
+        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-100 p-4 z-50">
           <div className="flex items-center gap-3 pb-4 mb-4 border-b border-slate-100">
             <span
-              className="w-11 h-11 rounded-2xl text-white flex items-center justify-center text-base font-black flex-shrink-0"
+              className="w-11 h-11 rounded-xl text-white flex items-center justify-center text-base font-black flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, #10707F, #0A4A55)' }}
             >
               {displayName.charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-700 truncate">{displayName}</p>
+              <p className="text-sm font-bold text-slate-700 truncate">{shownName}</p>
               {currentUser?.email && <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>}
             </div>
           </div>
@@ -271,20 +272,31 @@ const AdminMenu = () => {
   );
 };
 
+// Pages whose content wants to run flush to the topbar/sidebar/right edge
+// (the wave-background directories) instead of sitting inside the usual
+// padded, centered column every other page uses.
+const FULL_BLEED_PATHS = ['/view-customers', '/workers'];
+
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const isFullBleed = FULL_BLEED_PATHS.some(p => location.pathname === p);
   return (
-    <div className="flex min-h-screen fabric-bg">
+    <div className="flex fabric-bg">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <NewWorkerAlert />
-      <div className="flex-1 min-h-screen flex flex-col overflow-x-hidden w-full min-w-0">
+      <div className="flex-1 flex flex-col overflow-x-hidden w-full min-w-0">
         <Topbar onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-10">
-          <div className="max-w-6xl mx-auto min-w-0">
-            {children}
-          </div>
-        </main>
-        <div className="px-4 sm:px-6 lg:px-10 pb-8">
+        {isFullBleed ? (
+          <main className="min-w-0 flex-1">{children}</main>
+        ) : (
+          <main className="min-w-0 p-4 sm:p-6 lg:p-10">
+            <div className="max-w-6xl mx-auto min-w-0">
+              {children}
+            </div>
+          </main>
+        )}
+        <div className="px-4 sm:px-6 lg:px-10 pb-8 mt-6">
           <div className="max-w-6xl mx-auto">
             <PortalFooter />
           </div>

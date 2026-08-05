@@ -1,16 +1,19 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { customerService, sizingService, orderService, workerService, authService, designService } from '../api/api';
 import { useToast } from './ToastContext';
+import { useLanguage } from './LanguageContext';
 
 const LocalStateContext = createContext();
 
 export const LocalStateProvider = ({ children }) => {
+  const { t, tn } = useLanguage();
   // ✅ Global update popups — fired right after any successful add/update/
   // delete below, so a small confirmation toast shows up no matter which
   // page (Designs, Orders, Workers, Customers, ...) the change was made
   // from and no matter which page is currently being viewed elsewhere.
   const toastCtx = useToast();
   const notify = (message, type = 'success') => { if (toastCtx) toastCtx.showToast(message, type); };
+  const toast = (en, ur, type = 'success') => notify(t(en, ur), type);
   const [currentUser, setCurrentUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sd_master_auth')); } catch { return null; }
   });
@@ -151,7 +154,7 @@ export const LocalStateProvider = ({ children }) => {
     const res = await customerService.add(data);
     const c = { ...(res.data || res), address: (res.data || res).familyName || '' };
     setCustomers(prev => [c, ...prev]);      // newest first
-    notify(`Customer added / کسٹمر شامل ہو گیا: ${c.name}`);
+    toast(`Customer added: ${c.name}`, `کسٹمر شامل ہو گیا: ${tn(c.name)}`);
     return c;
   };
 
@@ -159,7 +162,7 @@ export const LocalStateProvider = ({ children }) => {
     await customerService.delete(id);        // ✅ passes _id directly
     setCustomers(prev => prev.filter(c => c._id?.toString() !== id?.toString()));
     setOrders(prev => prev.filter(o => o.customerId?.toString() !== id?.toString()));
-    notify('Customer deleted / کسٹمر حذف ہو گیا', 'info');
+    toast('Customer deleted', 'کسٹمر حذف ہو گیا', 'info');
   };
 
   // Customer Portal self-signup. Unlike registerWorker, this logs the
@@ -176,7 +179,7 @@ export const LocalStateProvider = ({ children }) => {
       const exists = prev.some(x => x._id?.toString() === c._id?.toString());
       return exists ? prev.map(x => x._id?.toString() === c._id?.toString() ? c : x) : [c, ...prev];
     });
-    notify(`Welcome / خوش آمدید, ${c.name}!`);
+    toast(`Welcome, ${c.name}!`, `خوش آمدید، ${tn(c.name)}!`);
     return c;
   };
 
@@ -198,7 +201,7 @@ export const LocalStateProvider = ({ children }) => {
       : await sizingService.add({ customerId, ...sizingData });
     const saved = res.updatedSize || res.size || sizingData;
     setSizes(prev => ({ ...prev, [customerId]: saved }));
-    notify('Sizing saved / ماپ محفوظ ہو گئی');
+    toast('Sizing saved', 'ماپ محفوظ ہو گئی');
     return saved;
   };
 
@@ -207,14 +210,14 @@ export const LocalStateProvider = ({ children }) => {
     const res = await orderService.add(data);
     const o = normalizeOrder({ ...(res.order || res), createdAt: (res.order || res).createdAt || new Date().toISOString() });
     setOrders(prev => [...prev, o]);
-    notify(`Order added / آرڈر شامل ہو گیا: ${o.orderType || ''}`.trim());
+    toast(`Order added: ${o.orderType || ''}`.trim(), `آرڈر شامل ہو گیا: ${o.orderType || ''}`.trim());
     return o;
   };
   const updateOrder = async (id, data) => {
     const res = await orderService.update(id, data);
     const updated = res.order || res;
     setOrders(prev => prev.map(o => o._id?.toString() === id?.toString() ? normalizeOrder({ ...o, ...updated }) : o));
-    notify('Order updated / آرڈر اپڈیٹ ہو گیا');
+    toast('Order updated', 'آرڈر اپڈیٹ ہو گیا');
     return updated;
   };
   const updateOrderStatus = async (id, payload) => {
@@ -226,12 +229,12 @@ export const LocalStateProvider = ({ children }) => {
         ? normalizeOrder({ ...o, ...body, ...(updated || {}) })
         : o
     ));
-    notify('Order status updated / آرڈر کی حالت اپڈیٹ ہو گئی');
+    toast('Order status updated', 'آرڈر کی حالت اپڈیٹ ہو گئی');
   };
   const deleteOrder = async (id) => {
     await orderService.delete(id);
     setOrders(prev => prev.filter(o => o._id?.toString() !== id?.toString()));
-    notify('Order deleted / آرڈر حذف ہو گیا', 'info');
+    toast('Order deleted', 'آرڈر حذف ہو گیا', 'info');
   };
   // Worker flags their stage as done — order's real status/stage stays put,
   // we just attach pendingCompletion so the admin sees a "worker says done"
@@ -242,7 +245,7 @@ export const LocalStateProvider = ({ children }) => {
     setOrders(prev => prev.map(o =>
       o._id?.toString() === id?.toString() ? normalizeOrder({ ...o, ...(updated || {}) }) : o
     ));
-    notify('Marked done — waiting on admin / مکمل بھیج دیا گیا');
+    toast('Marked done - waiting on admin', 'مکمل بھیج دیا گیا');
     return updated;
   };
   // Worker moves their own status forward through the happy path:
@@ -254,7 +257,7 @@ export const LocalStateProvider = ({ children }) => {
     setOrders(prev => prev.map(o =>
       o._id?.toString() === id?.toString() ? normalizeOrder({ ...o, ...(updated || {}) }) : o
     ));
-    notify('Status updated / حالت اپڈیٹ ہو گئی');
+    toast('Status updated', 'حالت اپڈیٹ ہو گئی');
     return updated;
   };
   // Admin replies to a worker's "Blocked" note with written guidance —
@@ -266,7 +269,7 @@ export const LocalStateProvider = ({ children }) => {
     setOrders(prev => prev.map(o =>
       o._id?.toString() === id?.toString() ? normalizeOrder({ ...o, ...(updated || {}) }) : o
     ));
-    notify('Guidance sent / رہنمائی بھیج دی گئی');
+    toast('Guidance sent', 'رہنمائی بھیج دی گئی');
     return updated;
   };
 
@@ -275,34 +278,34 @@ export const LocalStateProvider = ({ children }) => {
     const res = await workerService.add(data);
     const w = res.worker || res;
     setWorkers(prev => [w, ...prev]);
-    notify(`Worker added / ورکر شامل ہو گیا: ${w.name}`);
+    toast(`Worker added: ${w.name}`, `ورکر شامل ہو گیا: ${tn(w.name)}`);
     return w;
   };
   const updateWorker = async (id, data) => {
     const res = await workerService.update(id, data);
     const w = res.worker || res;
     setWorkers(prev => prev.map(x => x._id === id ? w : x));
-    notify('Worker updated / ورکر اپڈیٹ ہو گیا');
+    toast('Worker updated', 'ورکر اپڈیٹ ہو گیا');
     return w;
   };
   const deleteWorker = async (id) => {
     await workerService.delete(id);
     setWorkers(prev => prev.filter(w => w._id !== id));
-    notify('Worker deleted / ورکر حذف ہو گیا', 'info');
+    toast('Worker deleted', 'ورکر حذف ہو گیا', 'info');
   };
   // Public self-registration — creates a pending (unapproved) worker account.
   // Doesn't log the person in or touch currentWorker; they still have to
   // wait for admin approval and sign in normally afterwards.
   const registerWorker = async (data) => {
     const res = await workerService.register(data);
-    notify('Registration submitted — waiting for approval / درخواست جمع ہو گئی');
+    toast('Registration submitted - waiting for approval', 'درخواست جمع ہو گئی');
     return res;
   };
   const approveWorker = async (id) => {
     const res = await workerService.approve(id);
     const w = res.worker || res;
     setWorkers(prev => prev.map(x => x._id === id ? w : x));
-    notify(`Worker approved / ورکر منظور ہو گیا: ${w.name || ''}`.trim());
+    toast(`Worker approved: ${w.name || ''}`.trim(), `ورکر منظور ہو گیا: ${tn(w.name) || ''}`.trim());
     return w;
   };
 
@@ -316,11 +319,12 @@ export const LocalStateProvider = ({ children }) => {
   // - existingImages: on update only — {url, publicId}[] of the design's
   //   current images to KEEP; whatever's missing from this list vs. what
   //   the design had before is treated as removed. Omit entirely on add.
-  const buildDesignFormData = ({ name, nameUrdu, description, category, price, isFeatured, imageFiles, imageUrls, existingImages }) => {
+  const buildDesignFormData = ({ name, nameUrdu, description, descriptionUrdu, category, price, isFeatured, imageFiles, imageUrls, existingImages }) => {
     const formData = new FormData();
     if (name !== undefined) formData.append('name', name);
     if (nameUrdu !== undefined) formData.append('nameUrdu', nameUrdu);
     if (description !== undefined) formData.append('description', description);
+    if (descriptionUrdu !== undefined) formData.append('descriptionUrdu', descriptionUrdu);
     if (category !== undefined) formData.append('category', category);
     if (price !== undefined) formData.append('price', price === null ? '' : price);
     if (isFeatured !== undefined) formData.append('isFeatured', String(isFeatured));
@@ -333,20 +337,33 @@ export const LocalStateProvider = ({ children }) => {
     const res = await designService.add(buildDesignFormData(data));
     const d = res.design || res;
     setDesigns(prev => [d, ...prev]);
-    notify(`Design added / ڈیزائن شامل ہو گیا: ${d.name}`);
+    toast(`Design added: ${d.name}`, `ڈیزائن شامل ہو گیا: ${d.name}`);
     return d;
   };
   const updateDesign = async (id, data) => {
     const res = await designService.update(id, buildDesignFormData(data));
     const d = res.design || res;
     setDesigns(prev => prev.map(x => x._id === id ? d : x));
-    notify('Design updated / ڈیزائن اپڈیٹ ہو گیا');
+    toast('Design updated', 'ڈیزائن اپڈیٹ ہو گیا');
     return d;
   };
   const deleteDesign = async (id) => {
     await designService.delete(id);
     setDesigns(prev => prev.filter(d => d._id !== id));
-    notify('Design deleted / ڈیزائن حذف ہو گیا', 'info');
+    toast('Design deleted', 'ڈیزائن حذف ہو گیا', 'info');
+  };
+  // ✅ Backfills Urdu name/description for existing designs that don't
+  // have them yet, then re-fetches the catalog so the updated translations
+  // show up immediately without a manual page refresh.
+  const translateMissingDesigns = async () => {
+    const res = await designService.translateMissing();
+    const fresh = await designService.getAll();
+    setDesigns(fresh);
+    notify(
+      `${res.updatedCount} design(s) translated / ${res.updatedCount} ڈیزائنز ترجمہ ہو گئے`,
+      'info'
+    );
+    return res;
   };
 
   /* ── Stats ── */
@@ -371,7 +388,7 @@ export const LocalStateProvider = ({ children }) => {
       addOrder, updateOrder, updateOrderStatus, deleteOrder, requestOrderCompletion, updateWorkerStatus, sendGuidance,
       addWorker, updateWorker, deleteWorker,
       registerWorker, approveWorker,
-      addDesign, updateDesign, deleteDesign,
+      addDesign, updateDesign, deleteDesign, translateMissingDesigns,
       pendingWorkerAlerts, dismissWorkerAlert,
       getStats,
     }}>

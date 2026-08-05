@@ -78,19 +78,19 @@ const Settings = () => {
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter uppercase flex items-center gap-3 sm:gap-4">
-          <div className="bg-primary p-2.5 sm:p-3 rounded-2xl text-white shadow-lg flex-shrink-0"><SettingsIcon size={24} className="sm:hidden" /><SettingsIcon size={32} className="hidden sm:block" /></div>
+          <div className="bg-primary p-2.5 sm:p-3 rounded-xl text-white shadow-lg flex-shrink-0"><SettingsIcon size={24} className="sm:hidden" /><SettingsIcon size={32} className="hidden sm:block" /></div>
           {t('Settings', 'ترتیبات')}
         </h1>
-        <p className="text-slate-500 mt-2 font-medium text-sm sm:text-lg ml-[52px] sm:ml-16">{t('App ki settings customize karein', 'ایپ کی ترتیبات تبدیل کریں')}</p>
+        <p className="text-slate-500 mt-2 font-medium text-sm sm:text-lg ml-[52px] sm:ml-16">{t('Customize your app settings', 'ایپ کی ترتیبات تبدیل کریں')}</p>
       </motion.header>
 
       {/* Shop Info */}
-      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] space-y-8">
+      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-8">
         <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-          <div className="bg-primary/10 p-3 rounded-2xl text-primary"><Store size={24} /></div>
+          <div className="bg-primary/10 p-3 rounded-xl text-primary"><Store size={24} /></div>
           <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('Shop Information', 'دکان کی معلومات')}</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6">
           <Field label={t('Shop Name', 'دکان کا نام')} value={settings.shopName} onChange={set('shopName')} placeholder="Smart Master Tailoring..." />
           <Field label={t('Owner Name', 'مالک کا نام')} value={settings.ownerName} onChange={set('ownerName')} placeholder="Apna naam..." />
           <div className="space-y-3">
@@ -112,12 +112,12 @@ const Settings = () => {
             )}
           </div>
           <Field label={t('City', 'شہر')} value={settings.city} onChange={set('city')} placeholder="Lahore, Karachi..." />
-          <div className="md:col-span-2 space-y-3">
+          <div className="col-span-2 space-y-3">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">{t('Address', 'پتہ')}</label>
             <textarea
               dir="ltr"
               className="input-field !h-24 resize-none"
-              placeholder={t('Dukaan ka mukammal pata...', 'دکان کا مکمل پتہ...')}
+              placeholder={t('Complete shop address...', 'دکان کا مکمل پتہ...')}
               value={settings.address}
               onChange={set('address')}
             />
@@ -126,21 +126,21 @@ const Settings = () => {
       </div>
 
       {/* App Info */}
-      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3rem] space-y-4">
+      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-4">
         <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-          <div className="bg-primary/10 p-3 rounded-2xl text-primary"><SettingsIcon size={24} /></div>
+          <div className="bg-primary/10 p-3 rounded-xl text-primary"><SettingsIcon size={24} /></div>
           <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('App Info', 'ایپ کی معلومات')}</h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {[
             [t('Version', 'ورژن'), '1.0.0'],
             [t('Mode', 'موڈ'), t('Offline', 'آف لائن')],
             [t('Platform', 'پلیٹ فارم'), 'Smart Master POS'],
             [t('Built for', 'کس کے لیے بنایا گیا'), t('Tailoring Shops', 'درزی کی دکانوں کے لیے')],
           ].map(([k, v]) => (
-            <div key={k} className="bg-slate-50 p-4 rounded-2xl">
+            <div key={k} className="bg-slate-50 p-3 sm:p-4 rounded-xl min-w-0">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{k}</p>
-              <p className="font-bold text-slate-700 mt-1">{v}</p>
+              <p className="font-bold text-slate-700 mt-1 truncate">{v}</p>
             </div>
           ))}
         </div>
@@ -150,13 +150,13 @@ const Settings = () => {
       <div className="flex justify-end">
         <button
           onClick={handleSave}
-          className={`flex items-center gap-3 px-12 py-5 rounded-2xl font-black text-lg shadow-2xl transition-all ${
+          className={`flex items-center gap-2 sm:gap-3 px-6 py-3 text-sm sm:px-8 sm:py-4 sm:text-base lg:px-12 lg:py-5 lg:text-lg rounded-xl font-black shadow-2xl transition-all ${
             saved
               ? 'bg-emerald-500 text-white shadow-emerald-200 scale-[1.02]'
               : 'primary-btn shadow-primary/20 hover:scale-[1.03]'
           }`}
         >
-          {saved ? <><CheckCircle size={24} /> {t('Saved!', 'محفوظ!')}</> : <><Save size={24} /> {t('Save Settings', 'محفوظ کریں')}</>}
+          {saved ? <><CheckCircle size={18} className="sm:hidden" /><CheckCircle size={24} className="hidden sm:block" /> {t('Saved!', 'محفوظ!')}</> : <><Save size={18} className="sm:hidden" /><Save size={24} className="hidden sm:block" /> {t('Save Settings', 'محفوظ کریں')}</>}
         </button>
       </div>
     </div>

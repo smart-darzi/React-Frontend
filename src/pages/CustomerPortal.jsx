@@ -1,28 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLocalState } from '../context/useLocalState';
+import { useLanguage } from '../context/LanguageContext';
 import { getCustomerStatus } from '../utils/stages';
 import { DESIGN_CATEGORIES } from '../utils/designCategories';
 import DesignDetailModal from '../components/DesignDetailModal';
+import DesignThumb from '../components/DesignThumb';
+import PaginationControls from '../components/PaginationControls';
 import PortalFooter from '../components/PortalFooter';
-import { matchesNameSearch, sortByNameMatch, highlightNameMatch } from '../utils/nameSearch';
+import { matchesNameSearch, sortByNameMatch } from '../utils/nameSearch';
+import HighlightedName from '../components/HighlightedName';
 import {
   User, LogOut, Scissors, Phone, Mail, Home, Search, ClipboardList,
-  Palette, Star, Hash, Calendar, PackageCheck, Copy, Check, Loader2,
+  Palette, Star, Hash, Calendar, PackageCheck, Copy, Check, Loader2, Maximize2,
 } from 'lucide-react';
-
-// Highlights the matched portion of a design/order name — same treatment
-// used on the Admin's Customers/Designs search, reused here for consistency.
-const HighlightedName = ({ name, term }) => (
-  <>
-    {highlightNameMatch(name, term).map((seg, i) =>
-      seg.match
-        ? <span key={i} className="bg-yellow-200 text-slate-800 rounded px-0.5">{seg.text}</span>
-        : <span key={i}>{seg.text}</span>
-    )}
-  </>
-);
 
 // A short colored tick before each section title — a small, consistent
 // wayfinding device, rather than a plain <h2> blending into the page.
@@ -42,14 +34,18 @@ const SectionHeading = ({ children, eyebrow }) => (
 // own craft. The current stop is filled and pulses faintly; finished stops
 // are solid; stops ahead are hollow. This is the card's primary status
 // display, not decoration alongside a badge.
+// ✅ Labels are (en, ur) pairs now instead of a single fixed string, so the
+// tracker shows only whichever language the portal's toggle is set to,
+// never both scripts glued together on the same bead.
 const STAGE_META = {
-  Pending: { label: 'Order Received', color: '#B45309', bg: '#FEF3C7' },
-  'In Progress': { label: 'In Progress', color: '#1D4ED8', bg: '#DBEAFE' },
-  Completed: { label: 'Ready', color: '#047857', bg: '#D1FAE5' },
+  Pending: { labelEn: 'Order Received', labelUr: 'آرڈر موصول ہوا', color: '#B45309', bg: '#FEF3C7' },
+  'In Progress': { labelEn: 'In Progress', labelUr: 'جاری ہے', color: '#1D4ED8', bg: '#DBEAFE' },
+  Completed: { labelEn: 'Ready', labelUr: 'تیار ہے', color: '#047857', bg: '#D1FAE5' },
 };
 const CUSTOMER_STAGES = ['Pending', 'In Progress', 'Completed'];
 
 const StitchTracker = ({ order }) => {
+  const { t } = useLanguage();
   const current = getCustomerStatus(order);
   const currentIdx = CUSTOMER_STAGES.indexOf(current);
   return (
@@ -71,7 +67,7 @@ const StitchTracker = ({ order }) => {
                   }}
                 />
                 <span className={`mt-2 text-[10px] font-bold uppercase tracking-wide text-center leading-tight ${active ? '' : done ? 'text-slate-400' : 'text-slate-300'}`} style={active ? { color: meta.color } : undefined}>
-                  {meta.label}
+                  {t(meta.labelEn, meta.labelUr)}
                 </span>
               </div>
               {i < CUSTOMER_STAGES.length - 1 && (
@@ -90,15 +86,24 @@ const StitchTracker = ({ order }) => {
 
 // Time-based greeting — small touch that makes the header feel like it's
 // actually addressing the person who's logged in, not just labeling a role.
-const getGreeting = () => {
+// ✅ Returns a key now instead of a hardcoded English string, so the caller
+// can pick the matching English or Urdu greeting off the current language
+// toggle instead of always showing English.
+const GREETINGS = {
+  morning: { en: 'Good Morning', ur: 'صبح بخیر' },
+  afternoon: { en: 'Good Afternoon', ur: 'دوپہر بخیر' },
+  evening: { en: 'Good Evening', ur: 'شام بخیر' },
+};
+const getGreetingKey = () => {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
 };
 
 const CustomerPortal = () => {
   const { currentCustomer, customerLogout, orders, designs, loading } = useLocalState();
+  const { language, setLanguage, t, td, tn } = useLanguage();
   const navigate = useNavigate();
 
   // ✅ Two real tabs instead of one long stacked scroll (Track Order / My
@@ -154,6 +159,19 @@ const CustomerPortal = () => {
     });
     return sortByNameMatch(base, designSearch);
   }, [designs, designSearch, designCategoryFilter]);
+
+  // ✅ Shown 6 at a time (two rows), same as the Admin's Designs catalog —
+  // Prev/Next below the grid pages through the rest instead of dumping the
+  // whole catalog onto the screen at once.
+  const DESIGN_PAGE_SIZE = 6;
+  const [designPage, setDesignPage] = useState(1);
+  useEffect(() => { setDesignPage(1); }, [designSearch, designCategoryFilter]);
+  const totalDesignPages = Math.max(1, Math.ceil(filteredCatalogDesigns.length / DESIGN_PAGE_SIZE));
+  const safeDesignPage = Math.min(designPage, totalDesignPages);
+  const pagedCatalogDesigns = filteredCatalogDesigns.slice(
+    (safeDesignPage - 1) * DESIGN_PAGE_SIZE,
+    safeDesignPage * DESIGN_PAGE_SIZE
+  );
   // Other designs in the same category, shown inside the detail modal so a
   // customer browsing "Gents" designs can keep exploring similar options
   // without closing the modal and re-filtering by hand.
@@ -167,11 +185,16 @@ const CustomerPortal = () => {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  // ✅ A design's own name — prefers the Urdu name when the toggle is set
+  // to Urdu, otherwise the English one, so a design card never shows both
+  // scripts glued together. Falls back to whichever name exists.
+  const designName = (d) => (language === 'ur' && d?.nameUrdu ? d.nameUrdu : d?.name);
+
   if (loading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">Loading...</p>
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-tighter">{t('Loading...', 'لوڈ ہو رہا ہے...')}</p>
       </div>
     );
   }
@@ -183,7 +206,7 @@ const CustomerPortal = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
       whileHover={{ y: -3 }}
-      className="relative bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+      className="relative bg-white rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
     >
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
@@ -192,9 +215,9 @@ const CustomerPortal = () => {
               <Scissors size={19} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{order.orderCategory}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{td(order.orderCategory)}</p>
               <h3 className="font-display text-lg font-bold text-slate-900 truncate">
-                <HighlightedName name={order.orderType} term={orderNameSearch} />
+                <HighlightedName name={td(order.orderType)} term={orderNameSearch} />
               </h3>
             </div>
           </div>
@@ -209,13 +232,13 @@ const CustomerPortal = () => {
             {order.createdAt && (
               <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold">
                 <Calendar size={13} className="text-slate-400" />
-                Order Date: {new Date(order.createdAt).toLocaleDateString()}
+                {t('Order Date', 'آرڈر کی تاریخ')}: {new Date(order.createdAt).toLocaleDateString()}
               </div>
             )}
             {order.deliveredAt && (
               <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-bold">
                 <PackageCheck size={13} />
-                Delivered: {new Date(order.deliveredAt).toLocaleDateString()}
+                {t('Delivered', 'ڈیلیور ہو گیا')}: {new Date(order.deliveredAt).toLocaleDateString()}
               </div>
             )}
           </div>
@@ -224,28 +247,62 @@ const CustomerPortal = () => {
         {order._id && (
           <div className="flex items-center gap-2 mt-5 pt-4 border-t border-slate-100">
             <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              <Hash size={11} /> Order ID
+              <Hash size={11} /> {t('Order ID', 'آرڈر آئی ڈی')}
             </span>
-            <code className="text-[11px] font-mono text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">{order._id}</code>
+            <code className="text-[11px] font-mono text-slate-500 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-xl">{order._id}</code>
             <button
               onClick={() => copyId(order._id)}
               className="text-slate-400 hover:text-primary transition-colors"
-              title="Copy Order ID"
+              title={t('Copy Order ID', 'آرڈر آئی ڈی کاپی کریں')}
             >
               {copied === order._id ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
             </button>
           </div>
         )}
 
-        {order.selectedDesignImage && (
-          <div className="flex items-center gap-3 mt-4 bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors rounded-xl p-2.5 pr-4">
-            <img src={order.selectedDesignImage} alt={order.selectedDesignName || 'Design'} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Aapka Design</p>
-              <p className="text-xs font-bold text-slate-700 truncate">{order.selectedDesignName}</p>
-            </div>
-          </div>
-        )}
+        {/* ✅ Reference design picture — same treatment as the Worker
+            Portal's card: shown with a "+N more" badge when the catalog
+            design has extra photos, and clickable (when the catalog
+            record still exists) so the customer can flip through every
+            reference photo, not just the one cover shot saved on the
+            order itself. */}
+        {order.selectedDesignImage && (() => {
+          const linkedDesign = order.selectedDesignId
+            ? designs.find(d => d._id === order.selectedDesignId)
+            : null;
+          const extraCount = linkedDesign?.images?.length > 1 ? linkedDesign.images.length - 1 : 0;
+          const Wrapper = linkedDesign ? 'button' : 'div';
+          const displayName = language === 'ur'
+            ? (linkedDesign?.nameUrdu || order.selectedDesignNameUrdu || linkedDesign?.name || order.selectedDesignName)
+            : (linkedDesign?.name || order.selectedDesignName);
+          return (
+            <Wrapper
+              type={linkedDesign ? 'button' : undefined}
+              onClick={linkedDesign ? () => setViewingDesign(linkedDesign) : undefined}
+              className={`flex items-center gap-3 mt-4 bg-slate-50 border border-slate-100 rounded-xl p-2.5 pr-4 text-left w-full ${linkedDesign ? 'hover:bg-slate-100 hover:border-slate-200 transition-colors cursor-pointer' : 'hover:border-slate-200 transition-colors'}`}
+            >
+              <div className="relative flex-shrink-0">
+                <DesignThumb src={order.selectedDesignImage} alt={displayName || 'Design'} className="w-11 h-11 rounded-xl object-cover" iconSize={16} />
+                {extraCount > 0 && (
+                  <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-black/60 text-white">
+                    +{extraCount}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t('Your Design', 'آپ کا ڈیزائن')}</p>
+                <p dir={language === 'ur' && (linkedDesign?.nameUrdu || order.selectedDesignNameUrdu) ? 'rtl' : 'ltr'} className="text-xs font-bold text-slate-700 truncate">
+                  {displayName}
+                </p>
+                {linkedDesign && (
+                  <p className="text-[10px] font-bold text-primary flex items-center gap-1 mt-0.5">
+                    <Maximize2 size={10} /> {t('View all photos', 'تمام تصاویر دیکھیں')}
+                  </p>
+                )}
+              </div>
+            </Wrapper>
+          );
+        })()}
       </div>
     </motion.div>
   );
@@ -259,19 +316,19 @@ const CustomerPortal = () => {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative rounded-[2rem] overflow-hidden"
+          className="relative rounded-xl overflow-hidden"
           style={{ background: 'linear-gradient(155deg, #10707F 0%, #0E606E 50%, #0A4A55 100%)', boxShadow: '0 20px 40px -20px rgba(10,74,85,0.5)' }}
         >
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }} />
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5 p-6 md:p-7">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-2xl flex items-center justify-center text-white flex-shrink-0">
+              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                 <User size={22} />
               </div>
               <div className="min-w-0">
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">Customer Portal</p>
+                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('Customer Portal', 'کسٹمر پورٹل')}</p>
                 <h1 className="font-display text-xl font-extrabold text-white truncate">
-                  {getGreeting()}, {currentCustomer?.name?.split(' ')[0] || 'there'}
+                  {t(GREETINGS[getGreetingKey()].en, GREETINGS[getGreetingKey()].ur)}, {tn(currentCustomer?.name?.split(' ')[0]) || 'there'}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-white/70 text-xs font-medium">
                   {currentCustomer?.phoneNumber && (
@@ -292,22 +349,43 @@ const CustomerPortal = () => {
                 </div>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all self-start md:self-auto flex-shrink-0"
-            >
-              <LogOut size={16} /> Logout
-            </button>
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              {/* ✅ Language toggle — mirrors the Worker Portal's toggle so
+                  customers get the same single-language control instead of
+                  every bilingual string being shown at once. */}
+              <div className="flex items-center bg-white/15 border border-white/20 rounded-xl p-1 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('ur')}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                >
+                  اردو
+                </button>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all self-start md:self-auto flex-shrink-0"
+              >
+                <LogOut size={16} /> {t('Logout', 'لاگ آؤٹ')}
+              </button>
+            </div>
           </div>
 
           {/* ── Tabs — Browse Designs opens first, My Orders second. Only the
               active tab's content renders below, so there's never a big
               empty placeholder sitting on top of the section you actually
               want. ── */}
-          <nav className="relative flex items-center gap-1 px-4 md:px-5 border-t border-white/15 overflow-x-auto">
+          <nav className="relative flex items-center gap-1 px-4 md:px-5 border-t border-white/15 overflow-x-auto scrollbar-hide">
             {[
-              { id: 'designs', label: 'Browse Designs' },
-              { id: 'orders', label: `My Orders${myOrders.length ? ` (${myOrders.length})` : ''}` },
+              { id: 'designs', label: t('Browse Designs', 'ڈیزائن دیکھیں') },
+              { id: 'orders', label: `${t('My Orders', 'میرے آرڈرز')}${myOrders.length ? ` (${myOrders.length})` : ''}` },
             ].map(({ id, label }) => (
               <button
                 key={id}
@@ -329,7 +407,7 @@ const CustomerPortal = () => {
           <div className="space-y-8">
             {recommendedDesigns.length > 0 && (
               <div>
-                <SectionHeading eyebrow="Just for you">Recommended Designs / تجویز کردہ ڈیزائنز</SectionHeading>
+                <SectionHeading eyebrow={t('Just for you', 'آپ کے لیے')}>{t('Recommended Designs', 'تجویز کردہ ڈیزائنز')}</SectionHeading>
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
                   {recommendedDesigns.map((d, i) => (
                     <motion.button
@@ -337,21 +415,29 @@ const CustomerPortal = () => {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.04, ease: 'easeOut' }}
-                      whileHover={{ y: -2 }}
                       onClick={() => setViewingDesign(d)}
-                      className="relative flex-shrink-0 w-40 bg-white rounded-2xl border border-slate-200 overflow-hidden text-left hover:shadow-md hover:border-slate-300 transition-colors group"
+                      className="relative flex-shrink-0 w-44 glass-card rounded-2xl overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-0.5 transition-all p-4 flex flex-col items-center text-center"
                     >
-                      <div className="relative">
-                        <img src={d.images?.[0]?.url} alt={d.name} className="w-full h-40 object-contain bg-slate-50 group-hover:scale-[1.03] transition-transform duration-300" />
-                        <span className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-400 text-white">
-                          <Star size={9} fill="currentColor" /> Featured
+                      <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0">
+                        <div className="w-full h-full rounded-2xl overflow-hidden bg-white border border-slate-100">
+                          <DesignThumb src={d.images?.[0]?.url} alt={designName(d)} className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-300" iconSize={22} />
+                        </div>
+                        <span className="absolute top-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-white">
+                          <Star size={10} fill="currentColor" /> {t('Featured', 'نمایاں')}
                         </span>
                       </div>
-                      <div className="p-3 space-y-1">
-                        <h3 className="text-xs font-bold text-slate-800 truncate">{d.name}</h3>
-                        {d.price !== null && d.price !== undefined && (
-                          <span className="inline-block bg-primary/10 text-primary font-bold text-[11px] px-2 py-0.5 rounded-md">Rs {d.price}</span>
-                        )}
+                      <div className="w-full mt-3 space-y-1">
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase truncate">{designName(d)}</h3>
+                          {d.price !== null && d.price !== undefined && (
+                            <span className="text-primary font-black text-xs whitespace-nowrap">Rs {d.price}</span>
+                          )}
+                        </div>
+                        <div className="flex justify-center">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600">
+                            {td(d.category)}
+                          </span>
+                        </div>
                       </div>
                     </motion.button>
                   ))}
@@ -360,26 +446,26 @@ const CustomerPortal = () => {
             )}
 
             <div>
-              <SectionHeading eyebrow={`${designs.length} design${designs.length === 1 ? '' : 's'}`}>Browse Designs / ڈیزائن دیکھیں</SectionHeading>
+              <SectionHeading eyebrow={t(`${designs.length} design${designs.length === 1 ? '' : 's'}`, `${designs.length} ڈیزائنز`)}>{t('Browse Designs', 'ڈیزائن دیکھیں')}</SectionHeading>
 
               {designs.length === 0 ? (
-                <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+                <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
                   <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                     <Palette size={26} />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-400">Abhi tak koi design nahi</h3>
-                  <p className="text-slate-400 text-sm font-medium mt-1.5">Jald hi shop naye designs add karegi.</p>
+                  <h3 className="text-lg font-bold text-slate-400">{t('No designs yet', 'ابھی تک کوئی ڈیزائن نہیں')}</h3>
+                  <p className="text-slate-400 text-sm font-medium mt-1.5">{t('The shop will add new designs soon.', 'جلد ہی شاپ نئے ڈیزائن شامل کرے گی۔')}</p>
                 </div>
               ) : (
                 <>
-                  <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4 mb-5">
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4 mb-5">
                     <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex-1">
                       <div className="flex items-center justify-center px-3.5 text-slate-400">
                         <Search size={16} />
                       </div>
                       <input
                         type="text"
-                        placeholder="Design search karein..."
+                        placeholder={t('Search designs...', 'ڈیزائن تلاش کریں...')}
                         className="flex-1 pr-4 py-2.5 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-sm"
                         value={designSearch}
                         onChange={e => setDesignSearch(e.target.value)}
@@ -388,70 +474,86 @@ const CustomerPortal = () => {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         onClick={() => setDesignCategoryFilter('All')}
-                        className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all ${designCategoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all ${designCategoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                       >
-                        All
+                        {t('All', 'تمام')}
                       </button>
                       {DESIGN_CATEGORIES.map(c => (
                         <button
                           key={c}
                           onClick={() => setDesignCategoryFilter(c)}
-                          className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all whitespace-nowrap ${designCategoryFilter === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all whitespace-nowrap ${designCategoryFilter === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                         >
-                          {c.split(' / ')[0]}
+                          {td(c)}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {filteredCatalogDesigns.length === 0 ? (
-                    <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+                    <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
                       <Palette size={30} className="mx-auto mb-4 text-slate-300" />
-                      <h3 className="text-lg font-bold text-slate-400">No matching designs</h3>
+                      <h3 className="text-lg font-bold text-slate-400">{t('No matching designs', 'کوئی ملتا جلتا ڈیزائن نہیں')}</h3>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {filteredCatalogDesigns.map((d, i) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {pagedCatalogDesigns.map((d, i) => (
                         <motion.button
                           key={d._id}
-                          initial={{ opacity: 0, y: 12 }}
+                          initial={{ opacity: 0, y: 16 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: i * 0.03, ease: 'easeOut' }}
-                          whileHover={{ y: -2 }}
+                          transition={{ duration: 0.3, delay: i * 0.04, ease: 'easeOut' }}
                           onClick={() => setViewingDesign(d)}
-                          className="bg-white rounded-xl border border-slate-200 overflow-hidden text-left hover:shadow-md hover:border-slate-300 transition-colors group"
+                          className="glass-card rounded-2xl overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-0.5 transition-all p-4 flex flex-col items-center text-center"
                         >
-                          <div className="relative">
-                            <img src={d.images?.[0]?.url} alt={d.name} className="w-full h-36 object-contain bg-slate-50 group-hover:scale-[1.03] transition-transform duration-300" />
+                          <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0">
+                            <div className="w-full h-full rounded-2xl overflow-hidden bg-white border border-slate-100">
+                              <DesignThumb src={d.images?.[0]?.url} alt={designName(d)} className="w-full h-full object-cover object-center" iconSize={22} />
+                            </div>
                             {d.images?.length > 1 && (
-                              <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/50 text-white backdrop-blur-sm">
+                              <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-black/50 text-white backdrop-blur-sm">
                                 +{d.images.length - 1}
                               </span>
                             )}
                             {d.isFeatured && (
-                              <span className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-400 text-white">
-                                <Star size={9} fill="currentColor" /> Featured
+                              <span className="absolute top-1.5 left-1.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-white">
+                                <Star size={10} fill="currentColor" /> {t('Featured', 'نمایاں')}
                               </span>
                             )}
                           </div>
-                          <div className="p-3.5 space-y-1.5">
-                            <div className="flex items-center justify-between gap-2">
-                              <h3 className="text-xs font-bold text-slate-800 truncate">
-                                <HighlightedName name={d.name} term={designSearch} />
+                          <div className="w-full mt-3 space-y-1">
+                            <div className="flex items-center justify-center gap-2">
+                              <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase truncate">
+                                {language === 'ur' && d.nameUrdu
+                                  ? d.nameUrdu
+                                  : <HighlightedName name={d.name} term={designSearch} />}
                               </h3>
                               {d.price !== null && d.price !== undefined && (
-                                <span className="flex-shrink-0 bg-primary/10 text-primary font-bold text-[11px] px-2 py-0.5 rounded-md whitespace-nowrap">Rs {d.price}</span>
+                                <span className="text-primary font-black text-xs whitespace-nowrap">Rs {d.price}</span>
                               )}
                             </div>
-                            <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-indigo-50 text-indigo-600">
-                              {d.category}
-                            </span>
-                            {d.description && <p className="text-slate-400 text-[11px] font-medium line-clamp-2 pt-0.5">{d.description}</p>}
+                            <div className="flex justify-center">
+                              <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600">
+                                {td(d.category)}
+                              </span>
+                            </div>
+                            {d.description && (
+                              <p dir={language === 'ur' && d.descriptionUrdu ? 'rtl' : 'ltr'} className="text-slate-500 text-xs font-medium line-clamp-2 pt-1">
+                                {language === 'ur' && d.descriptionUrdu ? d.descriptionUrdu : d.description}
+                              </p>
+                            )}
                           </div>
                         </motion.button>
                       ))}
                     </div>
                   )}
+                  <PaginationControls
+                    currentPage={safeDesignPage}
+                    totalPages={totalDesignPages}
+                    onPrev={() => setDesignPage(p => Math.max(1, p - 1))}
+                    onNext={() => setDesignPage(p => Math.min(totalDesignPages, p + 1))}
+                    className="mt-5"
+                  />
                 </>
               )}
             </div>
@@ -461,17 +563,17 @@ const CustomerPortal = () => {
         {/* ── My Orders — search by name only ── */}
         {activeTab === 'orders' && (
           <div>
-            <SectionHeading eyebrow={`${myOrders.length} order${myOrders.length === 1 ? '' : 's'}`}>My Orders / میرے آرڈرز</SectionHeading>
+            <SectionHeading eyebrow={t(`${myOrders.length} order${myOrders.length === 1 ? '' : 's'}`, `${myOrders.length} آرڈرز`)}>{t('My Orders', 'میرے آرڈرز')}</SectionHeading>
 
             {myOrders.length > 0 && (
-              <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-5 mb-5">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
                 <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
                   <div className="flex items-center justify-center px-3.5 text-slate-400">
                     <Search size={16} />
                   </div>
                   <input
                     type="text"
-                    placeholder="Apne order ka naam likhein (jaise 'Shalwar Qamees')..."
+                    placeholder={t("Type your order's name (e.g. 'Shalwar Qamees')...", "اپنے آرڈر کا نام لکھیں (جیسے 'شلوار قمیض')...")}
                     className="flex-1 pr-4 py-3 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-sm"
                     value={orderNameSearch}
                     onChange={e => setOrderNameSearch(e.target.value)}
@@ -481,18 +583,18 @@ const CustomerPortal = () => {
             )}
 
             {myOrders.length === 0 ? (
-              <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
                 <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                   <ClipboardList size={26} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-400">Abhi tak koi order nahi</h3>
-                <p className="text-slate-400 text-sm font-medium mt-1.5">Jab shop aapka order add karegi, wo yahan dikhega.</p>
+                <h3 className="text-lg font-bold text-slate-400">{t('No orders yet', 'ابھی تک کوئی آرڈر نہیں')}</h3>
+                <p className="text-slate-400 text-sm font-medium mt-1.5">{t('Once the shop adds your order, it will show up here.', 'جب شاپ آپ کا آرڈر شامل کرے گی، یہ یہاں نظر آئے گا۔')}</p>
               </div>
             ) : filteredMyOrders.length === 0 ? (
-              <div className="bg-white rounded-[2.5rem] border border-dashed border-slate-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
                 <Search size={26} className="mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-bold text-slate-400">Is naam se koi order nahi mila</h3>
-                <p className="text-slate-400 text-sm font-medium mt-1.5">Order ka naam dobara check karein.</p>
+                <h3 className="text-lg font-bold text-slate-400">{t('No order found with this name', 'اس نام سے کوئی آرڈر نہیں ملا')}</h3>
+                <p className="text-slate-400 text-sm font-medium mt-1.5">{t('Please double-check the order name.', 'براہ کرم آرڈر کا نام دوبارہ چیک کریں۔')}</p>
               </div>
             ) : (
               <div className="space-y-4">

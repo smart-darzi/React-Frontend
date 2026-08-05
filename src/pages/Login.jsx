@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocalState } from '../context/useLocalState';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Scissors, Mail, Lock, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldAlert, Scissors } from 'lucide-react';
+import AuthUnderlineField from '../components/AuthUnderlineField';
 
 const fadeUp = (i = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -10,41 +11,13 @@ const fadeUp = (i = 0) => ({
   transition: { duration: 0.4, delay: i * 0.08, ease: 'easeOut' },
 });
 
-// Reveals a heading letter by letter on mount — the transition happens on
-// every single character (not the whole word at once), like a typewriter.
-// Each word is kept in its own nowrap wrapper so it never splits mid-word
-// across a line, but every letter inside it is its own animated span.
-// `tokens` lets a word be marked dim (its own className) or force a line
-// break after it, so the original heading layout is kept.
-const TypewriterHeading = ({ tokens, startDelay = 0.15, letterGap = 0.035, className, dimClassName }) => {
-  let letterIndex = -1;
-  return (
-    <h1 className={className}>
-      {tokens.map((token, ti) => (
-        <React.Fragment key={ti}>
-          <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }} className={token.dim ? dimClassName : undefined}>
-            {token.text.split('').map((letter, li) => {
-              letterIndex += 1;
-              const delay = startDelay + letterIndex * letterGap;
-              return (
-                <motion.span
-                  key={li}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay, ease: 'easeOut' }}
-                  style={{ display: 'inline-block' }}
-                >
-                  {letter}
-                </motion.span>
-              );
-            })}
-          </span>
-          {token.break ? <br /> : (() => { letterIndex += 1; return ' '; })()}
-        </React.Fragment>
-      ))}
-    </h1>
-  );
-};
+// Accent used across this page's form controls, links and button — back
+// to the app's teal family (a few different teal shades), with a touch of
+// cream mixed into the decorative background for warmth.
+const ACCENT_LINE = 'linear-gradient(90deg, #4FA6B8, #1C6B82, #0B5E63)';
+const ACCENT_SOLID = '#1C6B82';
+const ACCENT_BUTTON = 'linear-gradient(90deg, #4FA6B8 0%, #1C6B82 55%, #0B5E63 100%)';
+const CREAM = '#F5E9D3';
 
 // One login page for everyone. Admin and workers both sign in here with
 // their own email and password — the backend decides who they are and
@@ -52,6 +25,7 @@ const TypewriterHeading = ({ tokens, startDelay = 0.15, letterGap = 0.035, class
 const Login = () => {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
   const { login } = useLocalState();
@@ -71,152 +45,162 @@ const Login = () => {
         navigate('/customer-portal');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Email ya password galat hai / Invalid credentials');
+      setError(err.response?.data?.error || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div
+      className="min-h-[100dvh] w-full flex items-center justify-center overflow-y-auto relative px-4 py-8 sm:py-12"
+      style={{ background: 'linear-gradient(135deg, #083840 0%, #0B5E63 45%, #1C6B82 100%)' }}
+    >
+      {/* ── decorative outer backdrop, echoing the reference's diagonal bars ── */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-40">
+        <div className="absolute -top-10 -left-16 w-64 h-16 rounded-full rotate-[-35deg]" style={{ background: `${CREAM}25` }} />
+        <div className="absolute -top-2 left-20 w-40 h-12 bg-white/10 rounded-full rotate-[-35deg]" />
+        <div className="absolute top-24 -left-10 w-52 h-14 rounded-full rotate-[-35deg]" style={{ background: '#D9A44122' }} />
+        <div className="absolute -bottom-12 -right-16 w-72 h-16 rounded-full rotate-[-35deg]" style={{ background: `${CREAM}25` }} />
+        <div className="absolute bottom-16 right-4 w-44 h-12 rounded-full rotate-[-35deg]" style={{ background: '#FF9E8022' }} />
+        <div className="absolute bottom-40 -right-10 w-56 h-14 bg-white/10 rounded-full rotate-[-35deg]" />
+        <div className="hidden sm:block absolute top-1/3 left-6 w-24 h-24 rounded-full border-4 border-white/10" />
+        <div className="hidden sm:block absolute bottom-10 right-1/4 w-16 h-16 rounded-full" style={{ background: '#CBD5C822' }} />
+      </div>
 
-      {/* ── LEFT BRAND PANEL ── */}
-      <motion.div
-        initial={{ opacity: 0, x: -24 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="hidden lg:flex flex-col justify-between w-[48%] p-14 relative overflow-hidden"
-        style={{ background: 'linear-gradient(145deg, #0E606E 0%, #0A4A55 50%, #083840 100%)' }}
+      {/* ── right-side decorative cluster — the spot marked out on the
+          reference mock, built from the requested Memphis palette:
+          white, gold/mustard, coral/peach, cream/ivory, silver/gray
+          and soft pink, floating over the teal background. ── */}
+      <svg
+        className="hidden lg:block pointer-events-none absolute right-6 xl:right-14 top-1/2 -translate-y-1/2 opacity-90"
+        width="150" height="230" viewBox="0 0 150 230" fill="none"
       >
-        {/* Decorative circles — slow, subtle, continuous drift so the
-            panel doesn't feel static, but never distracting enough to
-            compete with the form. */}
-        <motion.div
-          className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, white, transparent)' }}
-          animate={{ scale: [1, 1.08, 1], opacity: [0.1, 0.14, 0.1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-0 right-0 w-72 h-72 rounded-full opacity-10 translate-x-1/3 translate-y-1/3"
-          style={{ background: 'radial-gradient(circle, white, transparent)' }}
-          animate={{ scale: [1, 1.12, 1], opacity: [0.1, 0.16, 0.1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, white, transparent)' }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-        />
+        {/* soft white ring, top */}
+        <circle cx="70" cy="34" r="22" stroke="#FFFFFF" strokeOpacity="0.85" strokeWidth="5" />
+        {/* gold/mustard ring, slightly offset */}
+        <circle cx="112" cy="70" r="15" stroke="#D9A441" strokeWidth="5" />
+        {/* coral/peach cross */}
+        <path d="M20 96 L44 120 M20 120 L44 96" stroke="#FF9E80" strokeWidth="7" strokeLinecap="round" />
+        {/* cream/ivory filled dot */}
+        <circle cx="90" cy="140" r="10" fill="#F5E9D3" />
+        {/* silver/gray zigzag */}
+        <path d="M18 168 h18 v14 h18" stroke="#CBD5C8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        {/* soft pink dot, bottom */}
+        <circle cx="118" cy="204" r="9" fill="#F4B8C4" />
+        {/* small white dot for balance */}
+        <circle cx="46" cy="210" r="5" fill="#FFFFFF" fillOpacity="0.7" />
+      </svg>
 
-        {/* Top logo */}
-        <motion.div {...fadeUp(0)} className="flex items-center gap-3 relative z-10">
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <Scissors className="text-white" size={22} />
-          </div>
-          <div>
-            <p className="text-white font-black text-lg tracking-widest uppercase">Smart Master</p>
-            <p className="text-white/50 text-xs font-medium tracking-widest">TAILORING MANAGEMENT</p>
-          </div>
-        </motion.div>
+      {/* ── CARD ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-[500px] rounded-[28px] overflow-hidden shadow-2xl bg-white"
+      >
+        {/* ── colorful header panel ── */}
+        <div
+          className="relative overflow-hidden px-7 pt-8 pb-14"
+          style={{ background: 'linear-gradient(135deg, #4FA6B8 0%, #1C6B82 55%, #0B5E63 100%)' }}
+        >
+          {/* Memphis-style decorative shapes — kept clear of the logo and
+              text column (left ~60%), clustered on the right instead, with
+              a mix of gold, coral, cream, silver and soft-pink accents
+              against the teal gradient. */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 500 260" preserveAspectRatio="none">
+            {/* soft ribbon texture, right side only */}
+            <path d="M300 0 C 340 40, 300 70, 360 90" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="22" fill="none" />
+            <path d="M420 260 C 380 220, 430 190, 400 150" stroke="#083840" strokeOpacity="0.15" strokeWidth="24" fill="none" />
 
-        {/* Center content */}
-        <div className="relative z-10 space-y-8">
-          <TypewriterHeading
-            className="text-5xl xl:text-6xl font-black text-white leading-[1.1] tracking-tighter"
-            dimClassName="text-white/50"
-            startDelay={0.15}
-            letterGap={0.035}
-            tokens={[
-              { text: 'Apni' },
-              { text: 'Dukaan', break: true },
-              { text: 'Ka', dim: true },
-              { text: 'Smart', dim: true, break: true },
-              { text: 'Hisaab' },
-            ]}
-          />
-          <motion.p {...fadeUp(2)} className="text-white/60 text-lg font-medium leading-relaxed max-w-sm">
-            Customers, orders, measurements aur workers — sab ek jagah manage karein.
-          </motion.p>
+            {/* gold/mustard ring, top right */}
+            <circle cx="452" cy="34" r="17" fill="none" stroke="#D9A441" strokeWidth="5" opacity="0.95" />
+            {/* coral/peach X, below the ring */}
+            <path d="M436 92 L450 78 M436 78 L450 92" stroke="#FF9E80" strokeWidth="6" strokeLinecap="round" />
+            {/* soft pink dot */}
+            <circle cx="468" cy="120" r="6" fill="#F4B8C4" opacity="0.9" />
+            {/* silver/gray zigzag stairs */}
+            <path d="M392 168 h14 v10 h14" fill="none" stroke="#CBD5C8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+            {/* cream ring, lower right */}
+            <circle cx="430" cy="216" r="9" fill="none" stroke={CREAM} strokeWidth="4" opacity="0.85" />
+            {/* small cream dot, far bottom-left, clear of the subtitle text */}
+            <circle cx="20" cy="238" r="7" fill={CREAM} opacity="0.6" />
+          </svg>
+
+          <div className="relative z-10 flex items-center gap-2.5 mb-6">
+            <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
+              <Scissors className="text-white" size={16} />
+            </div>
+            <span className="text-white font-black text-sm tracking-[0.2em] uppercase">Smart Master</span>
+          </div>
+
+          <h1 className="relative z-10 text-white font-black text-[28px] sm:text-[32px] leading-[1.1] tracking-tight max-w-[300px]">
+            Welcome to<br />our website
+          </h1>
+          <p className="relative z-10 mt-3 text-white/85 text-[13px] leading-relaxed max-w-[320px]">
+            Sign in to manage orders, track measurements and stay on top of every job — all in one place.
+          </p>
         </div>
 
-        {/* Bottom tagline */}
-        <motion.p {...fadeUp(3)} className="text-white/30 text-sm font-medium relative z-10">
-          © {new Date().getFullYear()} Smart Master
-        </motion.p>
-      </motion.div>
+        {/* ── white login panel, overlapping the header like the reference ── */}
+        <div className="relative -mt-8 rounded-t-[28px] px-7 pt-7 pb-8" style={{ background: '#FFFDF7' }}>
+          <h2 className="text-center font-black text-xl tracking-[0.15em] text-slate-800 uppercase mb-6">
+            Log In
+          </h2>
 
-      {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-10"
-        >
-
-          {/* Mobile logo (hidden on desktop) */}
-          <motion.div {...fadeUp(0)} className="lg:hidden flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
-              <Scissors className="text-white" size={22} />
-            </div>
-            <div>
-              <p className="font-black text-slate-800 text-lg tracking-wide uppercase">Smart Master</p>
-              <p className="text-slate-400 text-xs font-medium">Tailoring Management</p>
-            </div>
-          </motion.div>
-
-          {/* Heading */}
-          <motion.div {...fadeUp(1)} className="space-y-2">
-            <h2 className="text-4xl font-black text-slate-800 tracking-tighter">Welcome back</h2>
-            <p className="text-slate-500 font-medium text-lg">Apna account sign in karein</p>
-          </motion.div>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <motion.div {...fadeUp(2)} className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                Email / ای میل
-              </label>
-              <div className="flex items-stretch border border-slate-200 rounded-2xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
-                  <Mail size={18} className="text-slate-400" />
-                </div>
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  className="flex-1 px-4 py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                />
-              </div>
+            <motion.div {...fadeUp(0)}>
+              <AuthUnderlineField
+                label="Email Address"
+                type="email"
+                placeholder="Enter your username or email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                autoFocus
+                accent={ACCENT_LINE}
+              />
             </motion.div>
 
-            {/* Password */}
-            <motion.div {...fadeUp(3)} className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                Password / پاس ورڈ
-              </label>
-              <div className="flex items-stretch border border-slate-200 rounded-2xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
-                  <Lock size={18} className="text-slate-400" />
-                </div>
+            <motion.div {...fadeUp(1)}>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold tracking-wide text-slate-400 uppercase">
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[12px] font-bold hover:underline"
+                  style={{ color: ACCENT_SOLID }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative mt-2">
                 <input
                   type="password"
-                  placeholder="••••••••"
-                  className="flex-1 px-4 py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                  placeholder="Enter your password"
+                  className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-300 text-[15px] py-1.5"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                 />
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full" style={{ background: ACCENT_LINE }} />
               </div>
             </motion.div>
 
-            {/* Error */}
+            <motion.div {...fadeUp(2)} className="flex items-center text-sm pt-1">
+              <label className="flex items-center gap-2 text-slate-500 font-medium cursor-pointer select-none text-[13px]">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={e => setRemember(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300"
+                  style={{ accentColor: ACCENT_SOLID }}
+                />
+                Remember me
+              </label>
+            </motion.div>
+
             <AnimatePresence>
               {error && (
                 <motion.div
@@ -224,35 +208,31 @@ const Login = () => {
                   animate={{ opacity: 1, y: 0, height: 'auto' }}
                   exit={{ opacity: 0, y: -8, height: 0 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="space-y-2 overflow-hidden"
+                  className="overflow-hidden"
                 >
                   <motion.div
                     animate={{ x: [0, -6, 6, -4, 4, 0] }}
                     transition={{ duration: 0.4 }}
-                    className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-2xl text-sm font-bold"
+                    className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-xl text-sm font-bold"
                   >
                     <ShieldAlert size={18} className="flex-shrink-0" />
                     {error}
                   </motion.div>
-                  <p className="text-xs text-slate-400 font-medium px-1">
-                    Account nahi hai?{' '}
-                    <Link to="/customer-register" className="text-primary font-black hover:underline">Sign Up</Link>
-                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Submit */}
             <motion.button
-              {...fadeUp(4)}
+              {...fadeUp(3)}
               type="submit"
               disabled={loading}
               whileHover={{ scale: loading ? 1 : 1.015 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
-              className="primary-btn w-full py-5 rounded-2xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25 mt-2 disabled:opacity-60 group"
+              className="w-full py-4 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-xl disabled:opacity-60 group tracking-widest uppercase mt-2"
+              style={{ background: ACCENT_BUTTON }}
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 normal-case tracking-normal">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -261,25 +241,24 @@ const Login = () => {
                 </span>
               ) : (
                 <>
-                  Sign In
+                  Login
                   <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
                 </>
               )}
             </motion.button>
           </form>
 
-          <motion.p {...fadeUp(5)} className="text-center text-slate-400 text-xs font-medium leading-relaxed">
-            Naya worker hain?{' '}
-            <Link to="/register" className="text-primary font-black hover:underline">Apna account banayein</Link>
+          <p className="text-center text-slate-400 text-xs font-medium leading-relaxed mt-6">
+            Need a worker account?{' '}
+            <Link to="/register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>Create your account</Link>
             <br />
             <span className="inline-block mt-1">
-              Customer hain aur account nahi hai?{' '}
-              <Link to="/customer-register" className="text-primary font-black hover:underline">Sign Up karein</Link>
+              Need a customer account?{' '}
+              <Link to="/customer-register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>Sign Up</Link>
             </span>
-          </motion.p>
-
-        </motion.div>
-      </div>
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 };

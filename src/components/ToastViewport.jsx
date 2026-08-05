@@ -2,6 +2,7 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const STYLES = {
   success: { bg: 'bg-emerald-500', icon: CheckCircle2 },
@@ -9,11 +10,19 @@ const STYLES = {
   info:    { bg: 'bg-indigo-500',  icon: Info },
 };
 
+const pickSingleLanguageText = (message, language) => {
+  if (typeof message !== 'string') return message;
+  const parts = message.split(' / ');
+  if (parts.length < 2) return message;
+  return (language === 'ur' ? parts[1] : parts[0]).trim();
+};
+
 // Fixed top-right stack, rendered once at the root of the app (see App.jsx)
 // so a toast fired from anywhere — any page, any CRUD action — shows up on
 // top of whatever the user is currently looking at.
 const ToastViewport = () => {
   const ctx = useToast();
+    const { language } = useLanguage();
   if (!ctx) return null;
   const { toasts, dismissToast } = ctx;
 
@@ -29,10 +38,10 @@ const ToastViewport = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className={`pointer-events-auto ${bg} text-white rounded-2xl shadow-2xl px-5 py-4 flex items-start gap-3`}
+              className={`pointer-events-auto ${bg} text-white rounded-xl shadow-2xl px-5 py-4 flex items-start gap-3`}
             >
               <Icon size={20} className="flex-shrink-0 mt-0.5" />
-              <p className="flex-1 text-sm font-bold leading-snug">{t.message}</p>
+              <p className="flex-1 text-sm font-bold leading-snug">{pickSingleLanguageText(t.message, language)}</p>
               <button
                 onClick={() => dismissToast(t.id)}
                 className="flex-shrink-0 opacity-80 hover:opacity-100 transition-opacity"
