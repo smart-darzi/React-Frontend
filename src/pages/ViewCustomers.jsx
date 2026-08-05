@@ -37,43 +37,45 @@ const CustomerRow = ({ c, searchTerm, searchingByPhone, language, tn, t }) => {
   return (
     <Link
       to={`/customer/${c._id}`}
-      className="flex items-center gap-3 sm:gap-5 px-3 py-3 sm:px-6 sm:py-4 hover:bg-primary/5 transition-colors min-w-0 group"
+      className="flex items-center justify-between gap-3 sm:gap-4 px-3.5 py-3 sm:px-6 sm:py-4 hover:bg-primary/5 transition-colors min-w-0 group"
     >
-      <div className="relative flex-shrink-0">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center text-primary text-base sm:text-xl font-black ring-2 ring-white shadow-sm">
-          {c.name?.charAt(0).toUpperCase() || '?'}
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+        <div className="relative flex-shrink-0">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center text-primary text-sm sm:text-xl font-black ring-2 ring-white shadow-sm">
+            {c.name?.charAt(0).toUpperCase() || '?'}
+          </div>
+          <span
+            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ring-2 ring-white"
+            style={{ background: badge.bg }}
+          >
+            <Phone size={9} className="text-white" />
+          </span>
         </div>
-        <span
-          className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ring-2 ring-white"
-          style={{ background: badge.bg }}
-        >
-          <Phone size={9} className="text-white" />
-        </span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm sm:text-lg font-black uppercase truncate" style={{ color: '#0E606E' }}>
-          {language === 'ur' ? tn(c.name) : (searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />)}
-        </h3>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-          {c.familyName && (
-            <p className="text-slate-400 font-medium text-[11px] sm:text-xs flex items-center gap-1 truncate">
-              <MapPin size={10} className="flex-shrink-0" /> {language === 'ur' ? tn(c.familyName) : c.familyName}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm sm:text-lg font-black uppercase truncate" style={{ color: '#0E606E' }}>
+            {language === 'ur' ? tn(c.name) : (searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />)}
+          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 mt-0.5 text-[11px] sm:text-xs text-slate-400 font-medium min-w-0">
+            {c.familyName && (
+              <p className="flex items-center gap-1 truncate">
+                <MapPin size={11} className="flex-shrink-0" /> {language === 'ur' ? tn(c.familyName) : c.familyName}
+              </p>
+            )}
+            <p className="flex items-center gap-1 truncate">
+              <Phone size={11} className="flex-shrink-0" />
+              {searchingByPhone ? (
+                (() => {
+                  const { matched, rest } = splitPhoneMatch(c.phoneNumber, searchTerm);
+                  return matched ? (
+                    <span>
+                      <span className="bg-yellow-200 text-slate-800 font-black rounded px-0.5">{matched}</span>
+                      {rest}
+                    </span>
+                  ) : c.phoneNumber;
+                })()
+              ) : c.phoneNumber}
             </p>
-          )}
-          <p className="text-slate-400 font-medium text-[11px] sm:text-xs flex items-center gap-1 truncate">
-            <Phone size={10} className="flex-shrink-0" />
-            {searchingByPhone ? (
-              (() => {
-                const { matched, rest } = splitPhoneMatch(c.phoneNumber, searchTerm);
-                return matched ? (
-                  <span>
-                    <span className="bg-yellow-200 text-slate-800 font-black rounded px-0.5">{matched}</span>
-                    {rest}
-                  </span>
-                ) : c.phoneNumber;
-              })()
-            ) : c.phoneNumber}
-          </p>
+          </div>
         </div>
       </div>
       <span
@@ -97,17 +99,11 @@ const ViewCustomers = () => {
 
   const searchingByPhone = isDigitsOnly(searchTerm) && searchTerm.trim().length > 0;
 
-  // Filter first, then rank so exact/whole-word matches (a standalone
-  // "Tahir") come before loose partial matches (e.g. "Amina Tahir" or
-  // "Tahira") instead of showing up in arbitrary order.
   const filteredCustomers = searchingByPhone
     ? customers.filter(c => matchesPhoneSearch(c.phoneNumber, searchTerm))
     : sortByNameMatch(customers.filter(c => matchesNameSearch(c.name, searchTerm)), searchTerm);
 
   const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / PAGE_SIZE));
-  // Searching/filtering changes what "page 1" even means, so jump back to
-  // it whenever the search term changes rather than leaving the user
-  // stranded on a now out-of-range page.
   useEffect(() => { setPage(1); }, [searchTerm]);
   const safePage = Math.min(page, totalPages);
   const pageCustomers = filteredCustomers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -135,27 +131,27 @@ const ViewCustomers = () => {
           cta={
             <Link
               to="/add-customer"
-              className="inline-flex items-center gap-2 bg-white text-primary font-black text-sm px-6 py-3.5 rounded-full shadow-lg hover:scale-[1.03] transition-transform"
+              className="inline-flex items-center justify-center gap-2 bg-white text-primary font-black text-xs sm:text-sm px-5 py-3 sm:px-6 sm:py-3.5 rounded-full shadow-lg hover:scale-[1.03] transition-transform w-full sm:w-auto"
             >
               <UserPlus size={16} /> {tb('Add Customer', 'کسٹمر شامل کریں')}
             </Link>
           }
           rightContent={
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 space-y-4">
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 sm:p-5 space-y-3 sm:space-y-4 min-w-0">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{tb('Find a customer', 'کسٹمر تلاش کریں')}</p>
-              <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <div className="flex items-center justify-center px-3.5 bg-slate-100/80 border-r border-slate-200">
+              <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:ring-2 focus-within:ring-primary/20 transition-all min-w-0">
+                <div className="flex items-center justify-center px-3 bg-slate-100/80 border-r border-slate-200 flex-shrink-0">
                   <Search size={16} className="text-slate-400" />
                 </div>
                 <input
                   type="text"
                   placeholder={t('customers.directory.searchPlaceholder')}
-                  className="flex-1 px-3.5 py-3.5 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-sm"
+                  className="w-full px-3 py-3 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-xs sm:text-sm min-w-0 truncate"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
               </div>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="hidden sm:block text-xs text-slate-400 font-medium">
                 {customers.length} {tb('customers total', 'کل کسٹمرز')}
               </p>
             </div>

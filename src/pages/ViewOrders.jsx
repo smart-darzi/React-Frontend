@@ -37,45 +37,43 @@ const OrderRow = ({ order, customerName, searchTerm, language, tn, td, t }) => {
   return (
     <div
       onClick={() => navigate(`/order/${order._id}`)}
-      className="flex items-center gap-3 sm:gap-5 px-3 py-3 sm:px-6 sm:py-4 cursor-pointer hover:bg-primary/5 transition-colors min-w-0"
+      className="flex items-center justify-between gap-3 sm:gap-4 px-3.5 py-3 sm:px-6 sm:py-4 cursor-pointer hover:bg-primary/5 transition-colors min-w-0"
     >
-      {order.selectedDesignImage ? (
-        <div className="w-11 h-11 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl overflow-hidden bg-white border-2 border-primary/10">
-          <DesignThumb src={order.selectedDesignImage} alt={td(order.orderType)} className="w-full h-full object-cover object-center" iconSize={18} />
-        </div>
-      ) : (
-        <div className="w-11 h-11 sm:w-14 sm:h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-          <Scissors size={18} />
-        </div>
-      )}
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+        {order.selectedDesignImage ? (
+          <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl overflow-hidden bg-white border-2 border-primary/10 shadow-sm">
+            <DesignThumb src={order.selectedDesignImage} alt={td(order.orderType)} className="w-full h-full object-cover object-center" iconSize={18} />
+          </div>
+        ) : (
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+            <Scissors size={18} />
+          </div>
+        )}
 
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm sm:text-lg font-black text-slate-800 uppercase truncate">
-          <HighlightedName name={td(order.orderType)} term={searchTerm} />
-        </h3>
-        <p className="text-slate-500 font-medium text-xs sm:text-sm truncate flex items-center gap-1.5">
-          {language === 'ur' ? tn(customerName) : <HighlightedName name={customerName} term={searchTerm} />}
-          {order.assignedWorkerName && (
-            <span className="hidden sm:flex items-center gap-1 text-slate-400">
-              <HardHat size={11} /> {language === 'ur' ? tn(order.assignedWorkerName) : order.assignedWorkerName}
-            </span>
-          )}
-        </p>
-        <p className="text-slate-400 font-medium text-[10px] sm:text-xs flex items-center gap-1 mt-0.5">
-          <Calendar size={11} className="flex-shrink-0" />
-          {new Date(order.createdAt).toLocaleDateString()}
-        </p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs sm:text-base font-black text-slate-800 uppercase truncate">
+            <HighlightedName name={td(order.orderType)} term={searchTerm} />
+          </h3>
+          <div className="text-slate-500 font-medium text-[11px] sm:text-xs truncate flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+            <span className="truncate">{language === 'ur' ? tn(customerName) : <HighlightedName name={customerName} term={searchTerm} />}</span>
+            {order.assignedWorkerName && (
+              <span className="flex items-center gap-1 text-slate-400 text-[10px] sm:text-xs truncate">
+                <HardHat size={11} className="flex-shrink-0" /> {language === 'ur' ? tn(order.assignedWorkerName) : order.assignedWorkerName}
+              </span>
+            )}
+          </div>
+          <p className="text-slate-400 font-medium text-[10px] sm:text-xs flex items-center gap-1 mt-0.5">
+            <Calendar size={11} className="flex-shrink-0" />
+            {new Date(order.createdAt).toLocaleDateString()}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+      <div className="flex flex-col items-end gap-1 flex-shrink-0">
         <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest border-2 whitespace-nowrap ${getAdminStatusColor(order)}`}>
           {getAdminStatusLabel(order, language)}
         </span>
-        <span className="hidden sm:flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-          {t('viewOrders.viewDetails')} <ArrowRight size={12} />
-        </span>
       </div>
-      <ArrowRight size={16} className="sm:hidden text-slate-300 flex-shrink-0" />
     </div>
   );
 };
@@ -88,15 +86,10 @@ const ViewOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
 
-  // Dashboard's stat cards deep-link here with a status to pre-filter by
-  // (e.g. clicking "Pending Orders" should show only Pending orders, not
-  // the whole queue). Read once from navigation state on arrival.
   const [statusFilter, setStatusFilter] = useState(location.state?.statusFilter || null);
   useEffect(() => {
     if (location.state?.statusFilter) {
       setStatusFilter(location.state.statusFilter);
-      // Clear the navigation state so a manual refresh or back/forward
-      // doesn't keep re-applying it after the admin has cleared the filter.
       window.history.replaceState({}, '');
     }
   }, [location.state]);
@@ -122,9 +115,6 @@ const ViewOrders = () => {
     return c ? c.name : t('viewOrders.unknownCustomer');
   };
 
-  // Search matches order type, customer name, or assigned worker name —
-  // whichever the admin is more likely to remember about an order — with
-  // the same ranking/highlight treatment used on Customers/Designs search.
   const matchesOrderSearch = (order, term) => {
     if (!term.trim()) return true;
     const customerName = getCustomerName(order.customerId);
@@ -136,16 +126,11 @@ const ViewOrders = () => {
   };
 
   const searchedOrders = orders.filter(o => matchesStatusFilter(o) && matchesOrderSearch(o, searchTerm));
-  // Newest first — regardless of status, so the most recently created
-  // order always shows up on top.
   const sortedOrders = [...searchedOrders].sort((a, b) =>
     new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
   );
 
   const totalPages = Math.max(1, Math.ceil(sortedOrders.length / PAGE_SIZE));
-  // Searching/filtering changes what "page 1" even means, so jump back to
-  // it whenever the search term or status filter changes rather than
-  // leaving the admin stranded on a now out-of-range page.
   useEffect(() => { setPage(1); }, [searchTerm, statusFilter]);
   const safePage = Math.min(page, totalPages);
   const pageOrders = sortedOrders.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -160,26 +145,27 @@ const ViewOrders = () => {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-8">
       <motion.header
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 min-w-0"
       >
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tighter uppercase">{t('viewOrders.orderQueue')}</h1>
-          <p className="text-slate-500 mt-1.5 font-medium italic text-base sm:text-lg">{t('viewOrders.managingFlowCraftsmanship')}</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tighter uppercase truncate">{t('viewOrders.orderQueue')}</h1>
+          <p className="text-slate-500 mt-1 font-medium italic text-xs sm:text-base truncate">{t('viewOrders.managingFlowCraftsmanship')}</p>
         </div>
 
-        <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white shadow-lg max-w-md w-full focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-          <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
-            <Search size={18} className="text-slate-400" />
+        {/* Compact Search Bar */}
+        <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm w-full sm:w-64 md:w-72 flex-shrink-0 focus-within:ring-2 focus-within:ring-primary/20 transition-all min-w-0">
+          <div className="flex items-center justify-center px-3 bg-slate-50 border-r border-slate-200 flex-shrink-0">
+            <Search size={16} className="text-slate-400" />
           </div>
           <input
             type="text"
             placeholder={t('viewOrders.orderTypeCustomerYaWorkerSe')}
-            className="flex-1 px-4 py-4 bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+            className="w-full px-3 py-2.5 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-xs sm:text-sm min-w-0 truncate"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
@@ -188,8 +174,8 @@ const ViewOrders = () => {
 
       {statusFilter && (
         <div className="flex items-center gap-3">
-          <span className="text-slate-400 text-sm font-bold">{t('viewOrders.filter')}</span>
-          <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-black uppercase tracking-wider">
+          <span className="text-slate-400 text-xs sm:text-sm font-bold">{t('viewOrders.filter')}</span>
+          <span className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-black uppercase tracking-wider">
             {STATUS_FILTER_LABELS[statusFilter] || statusFilter}
             <button onClick={() => setStatusFilter(null)} className="hover:text-primary-dark">
               <X size={14} />
@@ -199,26 +185,26 @@ const ViewOrders = () => {
       )}
 
       {searchTerm.trim() && (
-        <p className="text-slate-400 text-sm font-bold -mt-6">
+        <p className="text-slate-400 text-xs sm:text-sm font-bold -mt-3 sm:-mt-4">
           {sortedOrders.length} {t('viewOrders.resultCount', { count: sortedOrders.length })} {t('viewOrders.forLabel')} "{searchTerm}"
         </p>
       )}
 
       {orders.length === 0 ? (
-        <div className="text-center py-32 glass-card rounded-xl border-4 border-dashed border-slate-100 bg-transparent">
-          <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-            <ClipboardList size={48} />
+        <div className="text-center py-20 sm:py-32 glass-card rounded-xl border-4 border-dashed border-slate-100 bg-transparent">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-slate-300">
+            <ClipboardList size={36} />
           </div>
-          <h3 className="text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('viewOrders.yourQueueEmpty')}</h3>
-          <p className="text-slate-400 font-medium mt-2">{t('viewOrders.readyNewMasterpiece')}</p>
+          <h3 className="text-xl sm:text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('viewOrders.yourQueueEmpty')}</h3>
+          <p className="text-slate-400 font-medium mt-1.5 text-xs sm:text-sm">{t('viewOrders.readyNewMasterpiece')}</p>
         </div>
       ) : sortedOrders.length === 0 ? (
-        <div className="text-center py-32 glass-card rounded-xl border-4 border-dashed border-slate-100 bg-transparent">
-          <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-            <Search size={48} />
+        <div className="text-center py-20 sm:py-32 glass-card rounded-xl border-4 border-dashed border-slate-100 bg-transparent">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-slate-300">
+            <Search size={36} />
           </div>
-          <h3 className="text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('viewOrders.noMatchingOrders')}</h3>
-          <p className="text-slate-400 font-medium mt-2">{t('viewOrders.searchBadalKarDobaraKoshishKarein')}</p>
+          <h3 className="text-xl sm:text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('viewOrders.noMatchingOrders')}</h3>
+          <p className="text-slate-400 font-medium mt-1.5 text-xs sm:text-sm">{t('viewOrders.searchBadalKarDobaraKoshishKarein')}</p>
         </div>
       ) : (
         <>

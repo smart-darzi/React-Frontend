@@ -59,7 +59,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
       )}
       <div
         className={`
-          w-72 max-w-[85vw] text-white fixed lg:sticky top-0 h-screen flex-shrink-0 flex flex-col shadow-2xl z-50
+          w-72 max-w-[85vw] text-white fixed top-0 left-0 h-screen flex-shrink-0 flex flex-col shadow-2xl z-50
           transition-transform duration-300 ease-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
@@ -282,25 +282,30 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const isFullBleed = FULL_BLEED_PATHS.some(p => location.pathname === p);
   return (
-    <div className="flex fabric-bg">
+    <div className="flex fabric-bg min-h-screen overflow-x-hidden w-full max-w-full">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <NewWorkerAlert />
-      <div className="flex-1 flex flex-col overflow-x-hidden w-full min-w-0">
+      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden w-full max-w-full min-w-0 lg:pl-72 justify-between">
         <Topbar onMenuClick={() => setMobileOpen(true)} />
         {isFullBleed ? (
-          <main className="min-w-0 flex-1">{children}</main>
+          <main className="min-w-0 flex-1 w-full max-w-full flex flex-col justify-between">
+            <div className="flex-1 w-full">{children}</div>
+            <footer className="px-3.5 sm:px-6 lg:px-10 mt-auto w-full max-w-full">
+              <div className="max-w-6xl mx-auto min-w-0 w-full">
+                <PortalFooter />
+              </div>
+            </footer>
+          </main>
         ) : (
-          <main className="min-w-0 p-4 sm:p-6 lg:p-10">
-            <div className="max-w-6xl mx-auto min-w-0">
+          <main className="min-w-0 flex-1 p-3.5 sm:p-6 lg:p-10 w-full max-w-full flex flex-col justify-between">
+            <div className="max-w-6xl mx-auto min-w-0 w-full flex-1">
               {children}
             </div>
+            <footer className="max-w-6xl mx-auto min-w-0 w-full pt-8 mt-auto">
+              <PortalFooter />
+            </footer>
           </main>
         )}
-        <div className="px-4 sm:px-6 lg:px-10 pb-8 mt-6">
-          <div className="max-w-6xl mx-auto">
-            <PortalFooter />
-          </div>
-        </div>
       </div>
     </div>
   );

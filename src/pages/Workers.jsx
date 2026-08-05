@@ -26,60 +26,93 @@ const WorkerCard = ({ w, orders }) => {
     o.assignedWorkerId?.toString() === w._id?.toString() && o.orderStatus === 'Active'
   );
 
-  // ✅ Live tracking — what is this worker actually doing right now, at a
-  // glance. Priority: a Blocked order is the most urgent thing an admin
-  // needs to notice, then In-Progress ("working"), then Completed-Review
-  // ("sent it off, self-checking"), and if none of that applies but they
-  // do have assigned work, they just haven't started yet. No assigned
-  // work at all -> genuinely idle.
   const liveOrder =
     assigned.find(o => o.workerStatus === 'Blocked') ||
     assigned.find(o => o.workerStatus === 'In-Progress') ||
     assigned.find(o => o.workerStatus === 'Completed-Review') ||
     assigned[0];
 
-  // Everything else (full history, edit, delete) lives on the worker's
-  // own detail page — this row is just enough to identify + spot-check.
   const badge = getBadgeColor(w._id || w.name);
   return (
     <div
       onClick={() => navigate(`/worker/${w._id}`)}
-      className="flex items-center gap-3 sm:gap-5 px-3 py-3 sm:px-6 sm:py-4 cursor-pointer hover:bg-primary/5 transition-colors min-w-0"
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-5 px-3.5 py-3.5 sm:px-6 sm:py-4 cursor-pointer hover:bg-primary/5 transition-colors min-w-0"
     >
-      <div className="relative flex-shrink-0">
-        <div className="w-11 h-11 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center text-primary text-base sm:text-xl font-black ring-2 ring-white shadow-sm">
-          {w.name.charAt(0).toUpperCase()}
-        </div>
-        <span
-          className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ring-2 ring-white"
-          style={{ background: badge.bg }}
-        >
-          <HardHat size={9} className="text-white" />
-        </span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm sm:text-lg font-black uppercase truncate" style={{ color: '#0E606E' }}>{tn(w.name)}</h3>
-        <p className="text-primary font-bold text-xs sm:text-sm truncate">
-          {td(w.role)}
-          {w.phone && <span className="text-slate-400 font-medium normal-case"> · {w.phone}</span>}
-        </p>
-      </div>
-      <div className="flex flex-col items-end gap-1 flex-shrink-0">
-        {liveOrder ? (
-          <span className={`text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${getWorkerStatusColor(liveOrder)}`}>
-            {liveOrder.workerStatus === 'Blocked' ? '⚠ ' : '● '}{getWorkerStatusLabel(liveOrder, t('en', 'ur'))}
+      {/* Worker Main Info */}
+      <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+        {/* Avatar */}
+        <div className="relative flex-shrink-0 mt-0.5 sm:mt-0">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 bg-primary/10 rounded-full flex items-center justify-center text-primary text-base sm:text-xl font-black ring-2 ring-white shadow-sm">
+            {w.name.charAt(0).toUpperCase()}
+          </div>
+          <span
+            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ring-2 ring-white"
+            style={{ background: badge.bg }}
+          >
+            <HardHat size={9} className="text-white" />
           </span>
-        ) : (
-          <span className="text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 whitespace-nowrap">{t('Idle', 'خالی')}</span>
-        )}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">{assigned.length} {t('active', 'فعال')}</span>
-          {w.email ? (
-            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0" title={t('Portal access', 'پورٹل رسائی')}>
-              <KeyRound size={11} />
-            </span>
-          ) : null}
         </div>
+
+        {/* Info Lines */}
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="flex items-center justify-between sm:justify-start gap-2">
+            <h3 className="text-sm sm:text-lg font-black uppercase truncate" style={{ color: '#0E606E' }}>
+              {tn(w.name)}
+            </h3>
+            {/* Status Pill on mobile header line */}
+            <div className="sm:hidden flex-shrink-0">
+              {liveOrder ? (
+                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border whitespace-nowrap ${getWorkerStatusColor(liveOrder)}`}>
+                  {liveOrder.workerStatus === 'Blocked' ? '⚠ ' : '● '}{getWorkerStatusLabel(liveOrder, t('en', 'ur'))}
+                </span>
+              ) : (
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 whitespace-nowrap">
+                  {t('Idle', 'خالی')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <p className="text-primary font-bold text-xs sm:text-sm truncate">
+            {td(w.role)}
+          </p>
+
+          {w.phone && (
+            <p className="text-slate-400 font-medium text-[11px] sm:text-xs flex items-center gap-1 truncate">
+              <Phone size={10} className="flex-shrink-0 text-slate-400" />
+              <span>{w.phone}</span>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Badges / Actions Row */}
+      <div className="flex items-center gap-2 flex-shrink-0 justify-end w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100/80">
+        {/* Status Pill on desktop */}
+        <div className="hidden sm:block">
+          {liveOrder ? (
+            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border whitespace-nowrap ${getWorkerStatusColor(liveOrder)}`}>
+              {liveOrder.workerStatus === 'Blocked' ? '⚠ ' : '● '}{getWorkerStatusLabel(liveOrder, t('en', 'ur'))}
+            </span>
+          ) : (
+            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 whitespace-nowrap">
+              {t('Idle', 'خالی')}
+            </span>
+          )}
+        </div>
+
+        {/* Active count badge */}
+        <span className="text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">
+          {assigned.length} {t('active', 'فعال')}
+        </span>
+
+        {/* Key icon / Portal Access badge */}
+        {w.email && (
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[9px] sm:text-[10px] font-black uppercase whitespace-nowrap" title={t('Portal access', 'پورٹل رسائی')}>
+            <KeyRound size={11} />
+            <span className="hidden sm:inline">{t('Portal', 'پورٹل')}</span>
+          </span>
+        )}
       </div>
     </div>
   );

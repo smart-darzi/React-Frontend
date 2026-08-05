@@ -308,8 +308,8 @@ const CustomerPortal = () => {
   );
 
   return (
-    <div className="min-h-screen fabric-bg p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen flex flex-col justify-between fabric-bg p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-8 w-full flex-1 flex flex-col justify-between">
 
         {/* ── Header / Profile ── */}
         <motion.header
