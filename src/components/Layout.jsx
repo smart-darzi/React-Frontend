@@ -63,7 +63,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
           transition-transform duration-300 ease-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
-        style={{ background: 'linear-gradient(165deg, #10707F 0%, #0E606E 45%, #0A4A55 100%)' }}
+        style={{ background: '#0E606E' }}
       >
         <div className="p-6 sm:p-8 flex items-center justify-between gap-3 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -128,41 +128,41 @@ const Topbar = ({ onMenuClick }) => {
   const location = useLocation();
   const { t, language, setLanguage } = useLanguage();
   const active = navItems.find(item => (item.end ? location.pathname === item.to : location.pathname.startsWith(item.to))) || navItems[0];
-  const today = new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  const today = new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { day: 'numeric', month: 'short' });
 
   return (
-    <div className="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-200/70 px-4 sm:px-6 lg:px-10 py-4 lg:py-5 flex items-center justify-between gap-3 sm:gap-6" style={{ boxShadow: '0 1px 0 rgba(15,23,42,0.03), 0 8px 24px -16px rgba(15,23,42,0.15)' }}>
+    <div className="sticky top-0 z-30 px-2 sm:px-6 lg:px-10 py-2 sm:py-4 lg:py-5 flex items-center justify-between gap-1 sm:gap-6" style={{ background: '#0E606E', boxShadow: '0 1px 0 rgba(15,23,42,0.03), 0 8px 24px -16px rgba(15,23,42,0.35)' }}>
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 -ml-1 rounded-xl text-slate-500 hover:text-primary hover:bg-primary/5 flex-shrink-0"
+          className="lg:hidden p-1.5 sm:p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 flex-shrink-0"
           aria-label="Open menu"
         >
-          <Menu size={22} />
+          <Menu size={19} className="sm:w-[22px] sm:h-[22px]" strokeWidth={2.25} />
         </button>
-        <span className="hidden sm:flex w-10 h-10 rounded-xl bg-primary/10 text-primary items-center justify-center flex-shrink-0">
-          <active.icon size={18} />
+        <span className="flex w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg sm:rounded-xl bg-white/15 text-white items-center justify-center flex-shrink-0 backdrop-blur-sm border border-white/10">
+          <active.icon size={13} className="sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" />
         </span>
-        <div className="min-w-0">
-          <p className="hidden sm:block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Smart Master Admin', 'اسمارٹ ماسٹر ایڈمن')}</p>
-          <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight truncate">{t(active.labelEn, active.labelUr)}</h2>
+        <div className="min-w-0 flex-1">
+          <p className="block text-[6px] min-[360px]:text-[7px] sm:text-[9px] md:text-[10px] font-black text-white/60 uppercase tracking-widest truncate">{t('Smart Master Admin', 'اسمارٹ ماسٹر ایڈمن')}</p>
+          <h2 className="text-[11px] sm:text-base md:text-lg font-black text-white tracking-tight truncate">{t(active.labelEn, active.labelUr)}</h2>
         </div>
       </div>
-      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-        <span className="hidden md:block text-xs font-bold text-slate-400">{today}</span>
+      <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
+        <span className="text-[9px] sm:text-xs font-bold text-white/90 whitespace-nowrap flex-shrink-0">{today}</span>
         {/* Language toggle — flips every bilingual string across the app
             to render only its English or only its Urdu half (see
             LanguageContext). Numbers/prices are unaffected either way. */}
-        <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5">
+        <div className="flex items-center bg-white/10 border border-white/15 rounded-lg sm:rounded-xl p-0.5 gap-0.5 backdrop-blur-sm flex-shrink-0">
           <button
             onClick={() => setLanguage('en')}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-1 sm:px-2.5 md:px-3 py-0.5 sm:py-1.5 rounded-md sm:rounded-xl text-[7px] sm:text-xs font-black transition-all whitespace-nowrap ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'}`}
           >
             English
           </button>
           <button
             onClick={() => setLanguage('ur')}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-1 sm:px-2.5 md:px-3 py-0.5 sm:py-1.5 rounded-md sm:rounded-xl text-[7px] sm:text-xs font-black transition-all whitespace-nowrap ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'}`}
           >
             اردو
           </button>
@@ -214,18 +214,18 @@ const AdminMenu = () => {
     <div className="relative flex-shrink-0" ref={ref}>
       <button
         onClick={() => setOpen(p => !p)}
-        className="flex items-center gap-2 sm:gap-2.5 bg-slate-50 border border-slate-200 rounded-xl pl-2 pr-2.5 sm:pr-3.5 py-1.5 sm:py-2 hover:border-primary/30 hover:bg-primary/5 transition-all"
+        className="flex items-center gap-1 sm:gap-2.5 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl pl-1 sm:pl-2 pr-1 sm:pr-3.5 py-0.5 sm:py-2 hover:border-primary/30 hover:bg-primary/5 transition-all"
       >
         <span
-          className="w-7 h-7 rounded-xl text-white flex items-center justify-center text-xs font-black flex-shrink-0"
+          className="w-5 h-5 sm:w-7 sm:h-7 rounded-md sm:rounded-xl text-white flex items-center justify-center text-[8px] sm:text-xs font-black flex-shrink-0"
           style={{ background: 'linear-gradient(135deg, #10707F, #0A4A55)' }}
         >
           {displayName.charAt(0).toUpperCase()}
         </span>
-        <span className="hidden sm:block text-xs font-bold text-slate-600 truncate max-w-[140px]">
+        <span className="hidden min-[400px]:block text-[8px] sm:text-xs font-bold text-slate-600 truncate max-w-[40px] sm:max-w-[140px]">
           {shownName}
         </span>
-        <ChevronDown size={14} className={`hidden sm:block text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={10} className={`hidden min-[400px]:block sm:w-3.5 sm:h-3.5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -273,16 +273,17 @@ const AdminMenu = () => {
 };
 
 // Pages whose content wants to run flush to the topbar/sidebar/right edge
-// (the wave-background directories) instead of sitting inside the usual
-// padded, centered column every other page uses.
-const FULL_BLEED_PATHS = ['/view-customers', '/workers'];
+// instead of sitting inside the usual padded, centered column every other
+// page uses. (Currently none — the Customers/Workers directories now use
+// the same padded, boxed layout as the rest of the admin portal.)
+const FULL_BLEED_PATHS = [];
 
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const isFullBleed = FULL_BLEED_PATHS.some(p => location.pathname === p);
   return (
-    <div className="flex fabric-bg">
+    <div className="min-h-screen flex fabric-bg">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <NewWorkerAlert />
       <div className="flex-1 flex flex-col overflow-x-hidden w-full min-w-0">
@@ -290,17 +291,13 @@ const Layout = ({ children }) => {
         {isFullBleed ? (
           <main className="min-w-0 flex-1">{children}</main>
         ) : (
-          <main className="min-w-0 p-4 sm:p-6 lg:p-10">
+          <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-10">
             <div className="max-w-6xl mx-auto min-w-0">
               {children}
             </div>
           </main>
         )}
-        <div className="px-4 sm:px-6 lg:px-10 pb-8 mt-6">
-          <div className="max-w-6xl mx-auto">
-            <PortalFooter />
-          </div>
-        </div>
+        <PortalFooter />
       </div>
     </div>
   );

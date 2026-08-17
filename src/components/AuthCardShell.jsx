@@ -1,76 +1,88 @@
 import React from 'react';
 import { Scissors } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import PortalFooter from './PortalFooter';
 
 // Centered single-card auth layout — cream backdrop, soft teal-shade blob
 // accents (same teal family as the Login page), brand row + headline
 // above the card, and an English/Urdu toggle so this page's own bilingual
 // strings can be switched without needing the full app Topbar. Used by
 // the worker/customer sign-up pages.
-const AuthCardShell = ({ heading, subtitle, children, footer, showLanguageToggle = true }) => {
+const AuthCardShell = ({ badge, heading, subtitle, children, footer, showLanguageToggle = true }) => {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div
-      className="min-h-[100dvh] w-full flex flex-col items-center overflow-y-auto relative px-4 py-10 sm:py-14"
-      style={{ background: '#FBF6EC' }}
-    >
-      {/* decorative blobs — teal shades with a cream undertone */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="hidden sm:block absolute top-24 right-[8%] w-72 h-72 rounded-[45%_55%_60%_40%/50%_45%_55%_50%] opacity-90"
-          style={{ background: 'linear-gradient(135deg, #4FA6B8 0%, #0B5E63 100%)', filter: 'blur(2px)' }}
-        />
-        <div
-          className="hidden sm:block absolute bottom-16 left-[6%] w-24 h-24 rounded-[55%_45%_40%_60%/45%_55%_50%_50%]"
-          style={{ background: 'linear-gradient(135deg, #4FA6B8 0%, #1C6B82 100%)' }}
-        />
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full bg-teal-100/50 blur-2xl" />
+    <div className="min-h-[100dvh] w-full flex flex-col overflow-y-auto relative" style={{ background: '#FBF6EA' }}>
+      {/* ── HEADER ── */}
+      <div
+        className="shrink-0 px-4 sm:px-6 py-3 sm:py-4"
+        style={{ background: '#0E606E' }}
+      >
+        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-3 flex-nowrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white/15 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/10 flex-shrink-0">
+              <Scissors className="text-white" size={12} />
+            </div>
+            <span className="text-white font-black text-[10px] sm:text-xs md:text-sm tracking-widest uppercase truncate">Smart Master</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            {showLanguageToggle && (
+              <div className="flex items-center bg-white/10 border border-white/15 rounded-lg p-0.5 gap-0.5 backdrop-blur-sm">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className="px-1.5 sm:px-2 md:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] md:text-xs font-black transition-all"
+                  style={language === 'en' ? { background: '#fff', color: '#0E606E' } : { color: 'rgba(255,255,255,0.7)' }}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('ur')}
+                  className="px-1.5 sm:px-2 md:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] md:text-xs font-black transition-all"
+                  style={language === 'ur' ? { background: '#fff', color: '#0E606E' } : { color: 'rgba(255,255,255,0.7)' }}
+                >
+                  اردو
+                </button>
+              </div>
+            )}
+            <span className="inline-block text-white/70 text-[9px] sm:text-[11px] md:text-xs font-bold tracking-wide whitespace-nowrap truncate max-w-[90px] sm:max-w-none">
+              {new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* top row: brand + language toggle */}
-      <div className="relative z-10 w-full max-w-md flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4FA6B8, #0B5E63)' }}>
-            <Scissors className="text-white" size={15} />
-          </div>
-          <span className="font-black text-lg tracking-tight text-slate-800">Smart Master</span>
+      <div className="flex-1 w-full flex flex-col items-center px-3 sm:px-4 py-8 sm:py-14">
+      {/* card — same width/rounding as the Login card, and the same
+          two-part teal-header / white-form layout for visual consistency
+          across every auth page. */}
+      <div className="relative z-10 w-full max-w-[440px] sm:max-w-[480px] md:max-w-[560px] lg:max-w-[600px] rounded-[20px] sm:rounded-[28px] overflow-hidden shadow-md bg-white border-2" style={{ borderColor: '#1C6B82' }}>
+        {/* headline — teal panel, matching the Login page's header */}
+        <div
+          className="relative px-5 pt-7 pb-9 sm:px-7 sm:pt-9 sm:pb-11 md:px-9 md:pt-10 md:pb-12 text-center"
+          style={{ background: 'linear-gradient(135deg, #10707F 0%, #0E606E 55%, #0A4A55 100%)' }}
+        >
+          {badge && (
+            <span
+              className="inline-block mb-3 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full text-sm sm:text-base font-black tracking-widest uppercase bg-white/15 text-white border border-white/20 backdrop-blur-sm"
+            >
+              {badge}
+            </span>
+          )}
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">{heading}</h1>
+          {subtitle && <p className="text-white/75 font-medium mt-2 text-sm sm:text-base max-w-md mx-auto">{subtitle}</p>}
         </div>
 
-        {showLanguageToggle && (
-          <div className="flex items-center bg-white rounded-xl p-1 gap-0.5 shadow-sm border border-slate-100">
-            <button
-              type="button"
-              onClick={() => setLanguage('en')}
-              className="px-3 py-1.5 rounded-lg text-xs font-black transition-all"
-              style={language === 'en' ? { background: '#1C6B82', color: '#fff' } : { color: '#94a3b8' }}
-            >
-              English
-            </button>
-            <button
-              type="button"
-              onClick={() => setLanguage('ur')}
-              className="px-3 py-1.5 rounded-lg text-xs font-black transition-all"
-              style={language === 'ur' ? { background: '#1C6B82', color: '#fff' } : { color: '#94a3b8' }}
-            >
-              اردو
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* headline */}
-      <div className="relative z-10 text-center mb-8 px-4">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-800">{heading}</h1>
-        {subtitle && <p className="text-slate-500 font-medium mt-2 max-w-md mx-auto">{subtitle}</p>}
-      </div>
-
-      {/* card */}
-      <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
-        {children}
+        {/* form panel */}
+        <div className="relative px-5 pt-6 pb-7 sm:px-7 sm:pt-7 sm:pb-8 md:px-9 md:pt-8 md:pb-10 bg-white">
+          {children}
+        </div>
       </div>
 
       {footer && <div className="relative z-10 mt-6 text-center">{footer}</div>}
+      </div>
+      <PortalFooter />
     </div>
   );
 };

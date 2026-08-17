@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { LocalStateProvider } from './context/LocalStateContext';
 import { useLocalState } from './context/useLocalState';
 import { ToastProvider } from './context/ToastContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ToastViewport from './components/ToastViewport';
 import Layout from './components/Layout';
+import LandingSplash from './components/LandingSplash';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -76,11 +78,24 @@ const AnyProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  // Shown every time the app loads (every page open/refresh) — no
+  // sessionStorage memory, so the splash always plays from a fresh load.
+  const [showLanding, setShowLanding] = useState(true);
+
+  const handleLandingFinish = () => {
+    setShowLanding(false);
+  };
+
   return (
     <LanguageProvider>
     <ToastProvider>
       <LocalStateProvider>
       <ToastViewport />
+      <AnimatePresence>
+        {showLanding && (
+          <LandingSplash key="landing" onFinish={handleLandingFinish} />
+        )}
+      </AnimatePresence>
       <Router>
         <Routes>
           {/* One shared login page for everyone — admin and workers. */}

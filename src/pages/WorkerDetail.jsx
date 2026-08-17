@@ -11,6 +11,7 @@ import {
 import { getWorkerHistory, getWorkerStatusLabel, getWorkerStatusColor, roleToStage, ROLES } from '../utils/stages';
 import { validateEmail } from '../utils/validators';
 import PaginationControls from '../components/PaginationControls';
+import Dropdown from '../components/Dropdown';
 
 const HISTORY_PAGE_SIZE = 5;
 
@@ -148,19 +149,21 @@ const WorkerDetail = () => {
           <ArrowLeft size={16} /> {t('Back to Workers', 'واپس')}
         </button>
         {!editing && (
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={openEdit}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-100 transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-50 text-blue-600 font-bold text-xs sm:text-sm rounded-xl hover:bg-blue-100 transition-all"
             >
-              <Pencil size={15} /> {t('Edit', 'ترمیم')}
+              <Pencil size={14} className="sm:hidden" /><Pencil size={15} className="hidden sm:block" /> {t('Edit', 'ترمیم')}
             </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-500 font-bold text-sm rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-red-50 text-red-500 font-bold text-xs sm:text-sm rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
             >
-              {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} {t('Delete', 'حذف کریں')}
+              {deleting ? <Loader2 size={14} className="animate-spin sm:hidden" /> : <Trash2 size={14} className="sm:hidden" />}
+              {deleting ? <Loader2 size={15} className="animate-spin hidden sm:block" /> : <Trash2 size={15} className="hidden sm:block" />}
+              {t('Delete', 'حذف کریں')}
             </button>
           </div>
         )}
@@ -185,10 +188,13 @@ const WorkerDetail = () => {
             </div>
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Role', 'کام')} *</label>
-              <select className="input-field appearance-none cursor-pointer" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                <option value="">{t('Select role...', 'کام منتخب کریں...')}</option>
-                {ROLES.map(r => <option key={r} value={r}>{td(r)}</option>)}
-              </select>
+              <Dropdown
+                value={form.role}
+                options={ROLES.map(r => ({ value: r, label: td(r) }))}
+                onChange={role => setForm(p => ({ ...p, role }))}
+                placeholder={t('Select role...', 'کام منتخب کریں...')}
+                triggerClassName="input-field w-full flex items-center justify-between cursor-pointer"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('Phone', 'فون')}</label>
@@ -279,30 +285,30 @@ const WorkerDetail = () => {
       {/* Active / assigned work */}
       {assigned.length > 0 && (
         <div className="glass-card rounded-xl overflow-hidden">
-          <div className="p-6 sm:p-8 bg-primary/5 border-b border-primary/10">
-            <h2 className="text-lg font-black text-primary uppercase tracking-tighter flex items-center gap-2">
-              <ClipboardList size={18} /> {t('Assigned Work', 'تفویض شدہ کام')} ({assigned.length})
+          <div className="p-4 sm:p-8 bg-primary/5 border-b border-primary/10">
+            <h2 className="text-sm sm:text-lg font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+              <ClipboardList size={16} className="sm:hidden" /><ClipboardList size={18} className="hidden sm:block" /> {t('Assigned Work', 'تفویض شدہ کام')} ({assigned.length})
             </h2>
           </div>
-          <div className="p-6 sm:p-8 space-y-3">
+          <div className="p-4 sm:p-8 space-y-2.5 sm:space-y-3">
             {assigned.map(o => (
               <div
                 key={o._id}
                 onClick={() => navigate(`/order/${o._id}`)}
-                className="flex items-center gap-3 p-4 bg-white rounded-xl hover:shadow-md transition-all cursor-pointer border border-slate-100"
+                className="flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 bg-white rounded-xl hover:shadow-md transition-all cursor-pointer border border-slate-100"
               >
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                  <Scissors size={16} />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+                  <Scissors size={14} className="sm:hidden" /><Scissors size={16} className="hidden sm:block" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 text-sm uppercase truncate">{td(o.orderType)}</p>
-                  <p className="text-xs text-slate-500">{getCustomer(o.customerId)}</p>
+                  <p className="font-black text-slate-800 text-xs sm:text-sm uppercase truncate">{td(o.orderType)}</p>
+                  <p className="text-[11px] sm:text-xs text-slate-500 truncate">{getCustomer(o.customerId)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 uppercase whitespace-nowrap">
+                  <span className="text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 uppercase whitespace-nowrap">
                     {o.workStage ? ti(`stages.${o.workStage}`, { defaultValue: o.workStage }) : t('Active', 'فعال')}
                   </span>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase whitespace-nowrap ${getWorkerStatusColor(o)}`}>
+                  <span className={`text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full border uppercase whitespace-nowrap ${getWorkerStatusColor(o)}`}>
                     {o.workerStatus === 'Blocked' ? '⚠ ' : ''}{getWorkerStatusLabel(o, language)}
                   </span>
                 </div>
@@ -314,24 +320,24 @@ const WorkerDetail = () => {
 
       {/* Full work history */}
       <div className="glass-card rounded-xl overflow-hidden min-w-0">
-        <div className="p-8 bg-emerald-50 border-b border-emerald-100">
-          <h2 className="text-xl font-black text-emerald-700 uppercase tracking-tighter flex items-center gap-2">
-            <History size={20} /> {t('Work History', 'کام کی تاریخ')}
+        <div className="p-4 sm:p-8 bg-emerald-50 border-b border-emerald-100">
+          <h2 className="text-sm sm:text-xl font-black text-emerald-700 uppercase tracking-tighter flex items-center gap-2">
+            <History size={16} className="sm:hidden" /><History size={20} className="hidden sm:block" /> {t('Work History', 'کام کی تاریخ')}
           </h2>
         </div>
 
         {history.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 font-medium">
+          <div className="p-8 sm:p-12 text-center text-slate-400 font-medium text-sm sm:text-base">
             {t('This worker has no completed history yet.', 'اس ورکر کی ابھی تک کوئی مکمل تاریخ نہیں ہے۔')}
           </div>
         ) : (
           <div className="overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[560px] text-sm border-collapse">
+            <table className="w-full min-w-[520px] text-sm border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500">
-                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-8 py-3">{t('Order', 'آرڈر')}</th>
+                  <th className="text-left font-black uppercase text-[10px] tracking-widest px-4 sm:px-8 py-3">{t('Order', 'آرڈر')}</th>
                   <th className="text-left font-black uppercase text-[10px] tracking-widest px-4 py-3">{t('Stage', 'مرحلہ')}</th>
-                  <th className="text-right font-black uppercase text-[10px] tracking-widest px-8 py-3">{t('Date', 'تاریخ')}</th>
+                  <th className="text-right font-black uppercase text-[10px] tracking-widest px-4 sm:px-8 py-3">{t('Date', 'تاریخ')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,7 +347,7 @@ const WorkerDetail = () => {
                     onClick={() => navigate(`/order/${entry.order._id}`)}
                     className="border-t border-slate-100 hover:bg-emerald-50/40 cursor-pointer transition-colors"
                   >
-                    <td className="px-8 py-3 align-top">
+                    <td className="px-4 sm:px-8 py-3 align-top">
                       <p className="font-black text-slate-800 uppercase whitespace-nowrap">{td(entry.order.orderType)}</p>
                       <p className="text-slate-500 font-medium text-xs whitespace-nowrap mt-0.5">{getCustomer(entry.order.customerId)}</p>
                     </td>
@@ -350,7 +356,7 @@ const WorkerDetail = () => {
                         {ti(`stages.${entry.stage}`, { defaultValue: entry.stage })}
                       </span>
                     </td>
-                    <td className="px-8 py-3 text-right text-slate-400 font-medium whitespace-nowrap">
+                    <td className="px-4 sm:px-8 py-3 text-right text-slate-400 font-medium whitespace-nowrap">
                       {new Date(entry.at).toLocaleString()}
                     </td>
                   </tr>
@@ -359,8 +365,8 @@ const WorkerDetail = () => {
             </table>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between gap-4 px-8 py-5 bg-slate-50 border-t border-slate-100">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-8 py-4 sm:py-5 bg-slate-50 border-t border-slate-100">
+                <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">
                   {t('Page', 'صفحہ')} {safePage} {t('of', 'از')} {totalPages} · {history.length} {t('entries', 'اندراجات')}
                 </p>
                 <PaginationControls

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocalState } from '../context/useLocalState';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, ShieldAlert, Scissors } from 'lucide-react';
+import { motion, AnimatePresence} from 'framer-motion';
+import { Mail, Lock, ShieldAlert, Scissors } from 'lucide-react';
 import AuthUnderlineField from '../components/AuthUnderlineField';
+import { useLanguage } from '../context/LanguageContext';
+import PortalFooter from '../components/PortalFooter';
 
 const fadeUp = (i = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -11,13 +13,14 @@ const fadeUp = (i = 0) => ({
   transition: { duration: 0.4, delay: i * 0.08, ease: 'easeOut' },
 });
 
-// Accent used across this page's form controls, links and button — back
-// to the app's teal family (a few different teal shades), with a touch of
-// cream mixed into the decorative background for warmth.
+// Accent used across this page's form controls, links and button — the
+// app's teal family. The page itself is a clean white/cream, so teal is
+// reserved for the interactive bits (underline, links, icon, button) —
+// the teal gradient backdrop lives on the admin dashboard, not here.
 const ACCENT_LINE = 'linear-gradient(90deg, #4FA6B8, #1C6B82, #0B5E63)';
 const ACCENT_SOLID = '#1C6B82';
 const ACCENT_BUTTON = 'linear-gradient(90deg, #4FA6B8 0%, #1C6B82 55%, #0B5E63 100%)';
-const CREAM = '#F5E9D3';
+const CREAM = '#FBF6EA';
 
 // One login page for everyone. Admin and workers both sign in here with
 // their own email and password — the backend decides who they are and
@@ -30,6 +33,7 @@ const Login = () => {
   const [loading,  setLoading]  = useState(false);
   const { login } = useLocalState();
   const navigate  = useNavigate();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,115 +49,95 @@ const Login = () => {
         navigate('/customer-portal');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid email or password');
+      setError(err.response?.data?.error || t('Invalid email or password', 'ای میل یا پاس ورڈ غلط ہے'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="min-h-[100dvh] w-full flex items-center justify-center overflow-y-auto relative px-4 py-8 sm:py-12"
-      style={{ background: 'linear-gradient(135deg, #083840 0%, #0B5E63 45%, #1C6B82 100%)' }}
-    >
-      {/* ── decorative outer backdrop, echoing the reference's diagonal bars ── */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-40">
-        <div className="absolute -top-10 -left-16 w-64 h-16 rounded-full rotate-[-35deg]" style={{ background: `${CREAM}25` }} />
-        <div className="absolute -top-2 left-20 w-40 h-12 bg-white/10 rounded-full rotate-[-35deg]" />
-        <div className="absolute top-24 -left-10 w-52 h-14 rounded-full rotate-[-35deg]" style={{ background: '#D9A44122' }} />
-        <div className="absolute -bottom-12 -right-16 w-72 h-16 rounded-full rotate-[-35deg]" style={{ background: `${CREAM}25` }} />
-        <div className="absolute bottom-16 right-4 w-44 h-12 rounded-full rotate-[-35deg]" style={{ background: '#FF9E8022' }} />
-        <div className="absolute bottom-40 -right-10 w-56 h-14 bg-white/10 rounded-full rotate-[-35deg]" />
-        <div className="hidden sm:block absolute top-1/3 left-6 w-24 h-24 rounded-full border-4 border-white/10" />
-        <div className="hidden sm:block absolute bottom-10 right-1/4 w-16 h-16 rounded-full" style={{ background: '#CBD5C822' }} />
+    <div className="min-h-[100dvh] w-full flex flex-col overflow-y-auto relative" style={{ background: CREAM }}>
+      {/* ── HEADER ── */}
+      <div
+        className="shrink-0 px-4 sm:px-6 py-3 sm:py-4"
+        style={{ background: '#0E606E' }}
+      >
+        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-3 flex-nowrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white/15 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/10 flex-shrink-0">
+              <Scissors className="text-white" size={12} />
+            </div>
+            <span className="text-white font-black text-[10px] sm:text-xs md:text-sm tracking-widest uppercase truncate">Smart Master</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center bg-white/10 border border-white/15 rounded-lg p-0.5 gap-0.5 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className="px-1.5 sm:px-2 md:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] md:text-xs font-black transition-all"
+                style={language === 'en' ? { background: '#fff', color: '#0E606E' } : { color: 'rgba(255,255,255,0.7)' }}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('ur')}
+                className="px-1.5 sm:px-2 md:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] md:text-xs font-black transition-all"
+                style={language === 'ur' ? { background: '#fff', color: '#0E606E' } : { color: 'rgba(255,255,255,0.7)' }}
+              >
+                اردو
+              </button>
+            </div>
+            <span className="inline-block text-white/70 text-[9px] sm:text-[11px] md:text-xs font-bold tracking-wide whitespace-nowrap truncate max-w-[90px] sm:max-w-none">
+              {new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* ── right-side decorative cluster — the spot marked out on the
-          reference mock, built from the requested Memphis palette:
-          white, gold/mustard, coral/peach, cream/ivory, silver/gray
-          and soft pink, floating over the teal background. ── */}
-      <svg
-        className="hidden lg:block pointer-events-none absolute right-6 xl:right-14 top-1/2 -translate-y-1/2 opacity-90"
-        width="150" height="230" viewBox="0 0 150 230" fill="none"
-      >
-        {/* soft white ring, top */}
-        <circle cx="70" cy="34" r="22" stroke="#FFFFFF" strokeOpacity="0.85" strokeWidth="5" />
-        {/* gold/mustard ring, slightly offset */}
-        <circle cx="112" cy="70" r="15" stroke="#D9A441" strokeWidth="5" />
-        {/* coral/peach cross */}
-        <path d="M20 96 L44 120 M20 120 L44 96" stroke="#FF9E80" strokeWidth="7" strokeLinecap="round" />
-        {/* cream/ivory filled dot */}
-        <circle cx="90" cy="140" r="10" fill="#F5E9D3" />
-        {/* silver/gray zigzag */}
-        <path d="M18 168 h18 v14 h18" stroke="#CBD5C8" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        {/* soft pink dot, bottom */}
-        <circle cx="118" cy="204" r="9" fill="#F4B8C4" />
-        {/* small white dot for balance */}
-        <circle cx="46" cy="210" r="5" fill="#FFFFFF" fillOpacity="0.7" />
-      </svg>
-
+      <div className="flex-1 w-full flex flex-col items-center justify-center px-3 sm:px-6 py-6 sm:py-10 md:py-12">
       {/* ── CARD ── */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-[500px] rounded-[28px] overflow-hidden shadow-2xl bg-white"
+        className="relative z-10 w-full max-w-[440px] sm:max-w-[480px] md:max-w-[560px] lg:max-w-[600px] rounded-[20px] sm:rounded-[28px] overflow-hidden shadow-md bg-white border-2"
+        style={{ borderColor: '#1C6B82' }}
       >
-        {/* ── colorful header panel ── */}
+        {/* ── header panel, teal gradient (matches the app's brand accent) ── */}
         <div
-          className="relative overflow-hidden px-7 pt-8 pb-14"
-          style={{ background: 'linear-gradient(135deg, #4FA6B8 0%, #1C6B82 55%, #0B5E63 100%)' }}
+          className="relative px-5 pt-7 pb-9 sm:px-7 sm:pt-9 sm:pb-11 md:px-9 md:pt-10 md:pb-12"
+          style={{ background: 'linear-gradient(135deg, #10707F 0%, #0E606E 55%, #0A4A55 100%)' }}
         >
-          {/* Memphis-style decorative shapes — kept clear of the logo and
-              text column (left ~60%), clustered on the right instead, with
-              a mix of gold, coral, cream, silver and soft-pink accents
-              against the teal gradient. */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 500 260" preserveAspectRatio="none">
-            {/* soft ribbon texture, right side only */}
-            <path d="M300 0 C 340 40, 300 70, 360 90" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="22" fill="none" />
-            <path d="M420 260 C 380 220, 430 190, 400 150" stroke="#083840" strokeOpacity="0.15" strokeWidth="24" fill="none" />
-
-            {/* gold/mustard ring, top right */}
-            <circle cx="452" cy="34" r="17" fill="none" stroke="#D9A441" strokeWidth="5" opacity="0.95" />
-            {/* coral/peach X, below the ring */}
-            <path d="M436 92 L450 78 M436 78 L450 92" stroke="#FF9E80" strokeWidth="6" strokeLinecap="round" />
-            {/* soft pink dot */}
-            <circle cx="468" cy="120" r="6" fill="#F4B8C4" opacity="0.9" />
-            {/* silver/gray zigzag stairs */}
-            <path d="M392 168 h14 v10 h14" fill="none" stroke="#CBD5C8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
-            {/* cream ring, lower right */}
-            <circle cx="430" cy="216" r="9" fill="none" stroke={CREAM} strokeWidth="4" opacity="0.85" />
-            {/* small cream dot, far bottom-left, clear of the subtitle text */}
-            <circle cx="20" cy="238" r="7" fill={CREAM} opacity="0.6" />
-          </svg>
-
-          <div className="relative z-10 flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
-              <Scissors className="text-white" size={16} />
-            </div>
-            <span className="text-white font-black text-sm tracking-[0.2em] uppercase">Smart Master</span>
-          </div>
-
-          <h1 className="relative z-10 text-white font-black text-[28px] sm:text-[32px] leading-[1.1] tracking-tight max-w-[300px]">
-            Welcome to<br />our website
+          <h1 className="relative z-10 text-white font-black text-2xl sm:text-[28px] md:text-[32px] leading-[1.1] tracking-tight max-w-full sm:max-w-[300px]">
+            {language === 'ur' ? (
+              <>ہماری<br />دکان میں خوش آمدید</>
+            ) : (
+              <>Welcome to<br />our Shop</>
+            )}
           </h1>
-          <p className="relative z-10 mt-3 text-white/85 text-[13px] leading-relaxed max-w-[320px]">
-            Sign in to manage orders, track measurements and stay on top of every job — all in one place.
+          <p className="relative z-10 mt-3 text-white/75 text-[13px] leading-relaxed max-w-full sm:max-w-[320px]">
+            {t('Sign in to manage orders, track measurements and stay on top of every job — all in one place.', 'آرڈرز کا انتظام کرنے، پیمائشیں ٹریک کرنے اور ہر کام پر نظر رکھنے کے لیے لاگ ان کریں — سب کچھ ایک ہی جگہ پر۔')}
           </p>
         </div>
 
-        {/* ── white login panel, overlapping the header like the reference ── */}
-        <div className="relative -mt-8 rounded-t-[28px] px-7 pt-7 pb-8" style={{ background: '#FFFDF7' }}>
-          <h2 className="text-center font-black text-xl tracking-[0.15em] text-slate-800 uppercase mb-6">
-            Log In
+        {/* ── login form panel ── */}
+        <div className="relative px-5 pt-6 pb-7 sm:px-7 sm:pt-7 sm:pb-8 md:px-9 md:pt-8 md:pb-10 bg-white">
+          <h2 className="flex justify-center mb-5 sm:mb-6">
+            <span
+              className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 rounded-full text-sm sm:text-base font-black tracking-widest uppercase"
+              style={{ background: 'rgba(28,107,130,0.1)', color: '#1C6B82' }}
+            >
+              {t('Log In', 'لاگ ان')}
+            </span>
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <motion.div {...fadeUp(0)}>
               <AuthUnderlineField
-                label="Email Address"
+                label={t('Email Address', 'ای میل ایڈریس')}
                 type="email"
-                placeholder="Enter your username or email"
+                placeholder={t('Enter your username or email', 'اپنا یوزر نیم یا ای میل درج کریں')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
@@ -163,23 +147,23 @@ const Login = () => {
             </motion.div>
 
             <motion.div {...fadeUp(1)}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-x-3 gap-y-1">
                 <label className="text-[13px] font-bold tracking-wide text-slate-400 uppercase">
-                  Password
+                  {t('Password', 'پاس ورڈ')}
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-[12px] font-bold hover:underline"
                   style={{ color: ACCENT_SOLID }}
                 >
-                  Forgot password?
+                  {t('Forgot password?', 'پاس ورڈ بھول گئے؟')}
                 </Link>
               </div>
               <div className="relative mt-2">
                 <input
                   type="password"
-                  placeholder="Enter your password"
-                  className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-300 text-[15px] py-1.5"
+                  placeholder={t('Enter your password', 'اپنا پاس ورڈ درج کریں')}
+                  className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-300 text-base sm:text-[15px] py-1.5"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
@@ -197,7 +181,7 @@ const Login = () => {
                   className="w-4 h-4 rounded border-slate-300"
                   style={{ accentColor: ACCENT_SOLID }}
                 />
-                Remember me
+                {t('Remember me', 'مجھے یاد رکھیں')}
               </label>
             </motion.div>
 
@@ -213,7 +197,7 @@ const Login = () => {
                   <motion.div
                     animate={{ x: [0, -6, 6, -4, 4, 0] }}
                     transition={{ duration: 0.4 }}
-                    className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-xl text-sm font-bold"
+                    className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl text-sm font-bold"
                   >
                     <ShieldAlert size={18} className="flex-shrink-0" />
                     {error}
@@ -228,7 +212,7 @@ const Login = () => {
               disabled={loading}
               whileHover={{ scale: loading ? 1 : 1.015 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
-              className="w-full py-4 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-xl disabled:opacity-60 group tracking-widest uppercase mt-2"
+              className="w-full py-4 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-md disabled:opacity-60 group tracking-widest uppercase mt-2"
               style={{ background: ACCENT_BUTTON }}
             >
               {loading ? (
@@ -237,28 +221,27 @@ const Login = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                   </svg>
-                  Signing in...
+                  {t('Signing in...', 'لاگ ان ہو رہا ہے...')}
                 </span>
               ) : (
-                <>
-                  Login
-                  <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-                </>
+                t('Login', 'لاگ ان')
               )}
             </motion.button>
           </form>
 
           <p className="text-center text-slate-400 text-xs font-medium leading-relaxed mt-6">
-            Need a worker account?{' '}
-            <Link to="/register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>Create your account</Link>
+            {t('Need a worker account?', 'ورکر اکاؤنٹ چاہیے؟')}{' '}
+            <Link to="/register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>{t('Create your account', 'اپنا اکاؤنٹ بنائیں')}</Link>
             <br />
             <span className="inline-block mt-1">
-              Need a customer account?{' '}
-              <Link to="/customer-register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>Sign Up</Link>
+              {t('Need a customer account?', 'کسٹمر اکاؤنٹ چاہیے؟')}{' '}
+              <Link to="/customer-register" className="font-black hover:underline" style={{ color: ACCENT_SOLID }}>{t('Sign Up', 'سائن اپ')}</Link>
             </span>
           </p>
         </div>
       </motion.div>
+      </div>
+      <PortalFooter />
     </div>
   );
 };

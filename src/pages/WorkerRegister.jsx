@@ -104,6 +104,7 @@ const WorkerRegister = () => {
 
   return (
     <AuthCardShell
+      badge={t('Worker Sign Up', 'ورکر سائن اپ')}
       heading={t("Let's get you set up", 'آئیے آپ کا اکاؤنٹ بناتے ہیں')}
       subtitle={t(
         'Fill out the form and your request will be sent to the admin for approval.',
@@ -185,7 +186,7 @@ const WorkerRegister = () => {
         />
 
         {error && (
-          <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-xl text-sm font-bold">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl text-sm font-bold">
             <ShieldAlert size={18} className="flex-shrink-0" />
             {error}
           </div>
@@ -194,7 +195,7 @@ const WorkerRegister = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-lg shadow-teal-900/20 disabled:opacity-60"
+          className="w-full py-3.5 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-md shadow-teal-900/15 disabled:opacity-60"
           style={{ background: ACCENT_GRADIENT }}
         >
           {loading ? (

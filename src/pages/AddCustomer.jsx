@@ -205,14 +205,14 @@ const AddCustomer = () => {
                 </div>
               )}
 
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-stretch sm:justify-end mt-6">
                 <button
                   type="submit"
                   disabled={loading}
                   onClick={() => setPhoneTouched(true)}
-                  className="primary-btn px-8 py-3.5 rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-primary/20 disabled:opacity-60"
+                  className="primary-btn w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3.5 text-sm sm:text-base rounded-xl flex items-center justify-center gap-2 sm:gap-2.5 shadow-lg shadow-primary/20 disabled:opacity-60 whitespace-nowrap"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : <>{t('customers.addCustomer.registerContinue')} <ArrowRight size={18} /></>}
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <>{t('customers.addCustomer.registerContinue')} <ArrowRight size={16} className="sm:w-[18px] sm:h-[18px]" /></>}
                 </button>
               </div>
             </form>

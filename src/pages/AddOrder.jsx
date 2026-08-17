@@ -43,10 +43,9 @@ const Section = ({ title, icon, children, fullWidth = false }) => {
         // never squeezed into 1/3 of a 3-column grid or forced to scroll.
         children
       ) : (
-        /* Same column arrangement as desktop even on phone/tablet — fields
-           never wrap down to a single stacked column. On narrow screens the
-           row is horizontally scrollable instead (scrollbar-hide keeps the
-           track invisible so it doesn't clutter the glassy card design). */
+        /* Always 3 fields per row, even on phones — on narrow screens the
+           row scrolls horizontally instead of stacking (scrollbar-hide
+           keeps the track invisible so it doesn't clutter the design). */
         <div className="overflow-x-auto pb-1 -mx-1 px-1 lg:mx-0 lg:px-0 lg:overflow-visible scrollbar-hide">
           <div className="grid grid-cols-3 gap-3 sm:gap-5 lg:gap-8 min-w-[560px] sm:min-w-[680px] lg:min-w-0">
             {children}
@@ -337,32 +336,32 @@ const AddOrder = () => {
               ) : (
                 <div className="relative" ref={searchBoxRef}>
                   <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <div className="flex items-center justify-center px-5 bg-slate-100/80 border-r border-slate-200 min-w-[60px]">
-                      <Search size={20} className="text-slate-400" />
+                    <div className="flex items-center justify-center px-3 sm:px-5 bg-slate-100/80 border-r border-slate-200 min-w-[48px] sm:min-w-[60px]">
+                      <Search size={18} className="text-slate-400 sm:hidden" /><Search size={20} className="text-slate-400 hidden sm:block" />
                     </div>
                     <input
                       type="text"
                       placeholder={t('addOrder.searchCustomerByNameOrPhone')}
-                      className="flex-1 px-5 py-6 text-lg bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                      className="flex-1 min-w-0 px-3 sm:px-5 py-4 sm:py-6 text-sm sm:text-lg bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onFocus={() => setIsSearchFocused(true)}
                     />
                   </div>
                   {searchTerm && filteredCustomers.length > 0 && isSearchFocused && (
-                    <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-xl shadow-2xl border border-slate-100 p-4 z-50 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="absolute top-full left-0 right-0 mt-3 sm:mt-4 bg-white rounded-xl shadow-2xl border border-slate-100 p-2 sm:p-4 z-50 max-h-[300px] overflow-y-auto custom-scrollbar">
                       {filteredCustomers.map(c => (
                         <button
                           key={c._id}
                           type="button"
                           onClick={() => { setFormData(p => ({ ...p, customerId: c._id })); setSearchTerm(''); setIsSearchFocused(false); }}
-                          className="w-full p-4 hover:bg-slate-50 rounded-xl flex items-center justify-between text-left group/item"
+                          className="w-full p-2.5 sm:p-4 hover:bg-slate-50 rounded-xl flex items-center justify-between text-left group/item"
                         >
-                          <div>
-                            <p className="font-black text-slate-800 uppercase">
+                          <div className="min-w-0">
+                            <p className="font-black text-slate-800 uppercase text-sm sm:text-base truncate">
                               {language === 'ur' ? tn(c.name) : (searchingByPhone ? c.name : <HighlightedName name={c.name} term={searchTerm} />)}
                             </p>
-                            <p className="text-xs text-slate-400 font-bold">
+                            <p className="text-[11px] sm:text-xs text-slate-400 font-bold truncate">
                               {searchingByPhone ? (
                                 (() => {
                                   const { matched, rest } = splitPhoneMatch(c.phoneNumber, searchTerm);
@@ -376,7 +375,7 @@ const AddOrder = () => {
                               ) : c.phoneNumber}
                             </p>
                           </div>
-                          <ChevronRight className="text-slate-300 group-hover/item:text-primary transition-colors" />
+                          <ChevronRight className="text-slate-300 group-hover/item:text-primary transition-colors flex-shrink-0" size={18} />
                         </button>
                       ))}
                     </div>
@@ -497,11 +496,11 @@ const AddOrder = () => {
 
         {/* ── Design Catalog (optional) ── */}
         {designs.length > 0 && (
-          <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-xl text-primary"><Palette size={24} /></div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">
+          <div className="glass-card p-4 sm:p-8 lg:p-10 rounded-xl space-y-4 sm:space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 sm:pb-6">
+              <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                <div className="bg-primary/10 p-2 sm:p-3 rounded-xl text-primary flex-shrink-0"><Palette size={18} className="sm:hidden" /><Palette size={24} className="hidden sm:block" /></div>
+                <h2 className="text-base sm:text-2xl font-black text-slate-800 tracking-tighter uppercase truncate">
                   {t('addOrder.designCatalogOptional')}
                 </h2>
               </div>
@@ -509,7 +508,7 @@ const AddOrder = () => {
                 <button
                   type="button"
                   onClick={() => setFormData(p => ({ ...p, selectedDesignId: '' }))}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-500 text-xs font-black uppercase tracking-wider hover:bg-red-100"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-red-50 text-red-500 text-[10px] sm:text-xs font-black uppercase tracking-wider hover:bg-red-100"
                 >
                   <X size={14} /> {t('addOrder.clear')}
                 </button>
@@ -517,9 +516,9 @@ const AddOrder = () => {
             </div>
 
             {selectedCatalogDesign && (
-              <div className="flex items-center gap-4 p-4 bg-primary/5 border-2 border-primary/20 rounded-xl">
+              <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-primary/5 border-2 border-primary/20 rounded-xl">
                 <div className="relative flex-shrink-0">
-                  <DesignThumb src={selectedCatalogDesign.images?.[0]?.url} alt={selectedCatalogDesign.name} className="w-16 h-16 rounded-xl object-cover" iconSize={20} />
+                  <DesignThumb src={selectedCatalogDesign.images?.[0]?.url} alt={selectedCatalogDesign.name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover" iconSize={20} />
                   {selectedCatalogDesign.images?.length > 1 && (
                     <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-black/60 text-white">
                       +{selectedCatalogDesign.images.length - 1}
@@ -527,39 +526,39 @@ const AddOrder = () => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 uppercase truncate">{selectedCatalogDesign.name}</p>
-                  <p className="text-xs text-slate-400 font-bold">{td(selectedCatalogDesign.category)}</p>
+                  <p className="font-black text-slate-800 uppercase truncate text-xs sm:text-base">{selectedCatalogDesign.name}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-400 font-bold">{td(selectedCatalogDesign.category)}</p>
                 </div>
                 {selectedCatalogDesign.images?.length > 1 && (
                   <button
                     type="button"
                     onClick={() => setViewingDesign(selectedCatalogDesign)}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border-2 border-primary/20 text-primary text-xs font-black uppercase tracking-wider hover:bg-primary/10 whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white border-2 border-primary/20 text-primary text-[10px] sm:text-xs font-black uppercase tracking-wider hover:bg-primary/10 whitespace-nowrap"
                   >
-                    <Library size={14} /> {t('addOrder.allPhotos')} ({selectedCatalogDesign.images.length})
+                    <Library size={14} /> <span className="hidden sm:inline">{t('addOrder.allPhotos')} </span>({selectedCatalogDesign.images.length})
                   </button>
                 )}
               </div>
             )}
 
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 sm:gap-4">
               <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 flex-1">
-                <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200">
-                  <Search size={18} className="text-slate-400" />
+                <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200">
+                  <Search size={16} className="text-slate-400 sm:hidden" /><Search size={18} className="text-slate-400 hidden sm:block" />
                 </div>
                 <input
                   type="text"
                   placeholder={t('addOrder.searchDesigns')}
-                  className="flex-1 px-4 py-3 bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                  className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                   value={designSearch}
                   onChange={(e) => setDesignSearch(e.target.value)}
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => setDesignCategoryFilter('All')}
-                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${designCategoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all ${designCategoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                 >
                   {t('addOrder.all')}
                 </button>
@@ -568,7 +567,7 @@ const AddOrder = () => {
                     type="button"
                     key={c}
                     onClick={() => setDesignCategoryFilter(c)}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${designCategoryFilter === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${designCategoryFilter === c ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                   >
                     {td(c)}
                   </button>
@@ -579,8 +578,7 @@ const AddOrder = () => {
             {filteredCatalogDesigns.length === 0 ? (
               <p className="text-slate-400 font-medium text-center py-6">{t('addOrder.noMatchingDesignFound')}</p>
             ) : (
-              <div className="overflow-x-auto pb-1 -mx-1 px-1 lg:mx-0 lg:px-0 lg:overflow-visible scrollbar-hide">
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1 min-w-[520px] sm:min-w-[640px] lg:min-w-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 max-h-[420px] overflow-y-auto scrollbar-hide pr-1">
                 {filteredCatalogDesigns.map(d => {
                   const isSelected = formData.selectedDesignId === d._id;
                   return (
@@ -618,14 +616,13 @@ const AddOrder = () => {
                     </button>
                   );
                 })}
-                </div>
               </div>
             )}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-6 rounded-xl text-center font-bold border border-red-100">
+          <div className="bg-red-50 text-red-600 p-4 sm:p-6 rounded-xl text-center font-bold border border-red-100 text-sm sm:text-base">
             {error}
           </div>
         )}

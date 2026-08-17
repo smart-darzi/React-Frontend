@@ -32,6 +32,7 @@ const CustomerRegister = () => {
   const handlePhoneChange = (e) => {
     const val = cleanPhoneInput(e.target.value);
     setForm(p => ({ ...p, phone: val }));
+    if (error) setError('');
     if (!phoneTouched) setPhoneTouched(true);
   };
 
@@ -72,7 +73,8 @@ const CustomerRegister = () => {
 
   return (
     <AuthCardShell
-      heading={t('Welcome aboard', 'خوش آمدید')}
+      badge={t('Customer Sign Up', 'کسٹمر سائن اپ')}
+      heading={t("Let's get started", 'چلیں شروع کرتے ہیں')}
       subtitle={t(
         'Create an account and view your orders, tracking, and details anytime.',
         'اکاؤنٹ بنائیں اور اپنے آرڈرز، ٹریکنگ اور تفصیلات کبھی بھی دیکھیں۔'
@@ -94,7 +96,10 @@ const CustomerRegister = () => {
           type="text"
           placeholder={t('e.g. Ayesha Malik', 'مثال: عائشہ ملک')}
           value={form.name}
-          onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+          onChange={e => {
+            setForm(p => ({ ...p, name: e.target.value }));
+            if (error) setError('');
+          }}
           autoFocus
           accent={ACCENT}
         />
@@ -121,7 +126,10 @@ const CustomerRegister = () => {
           type="text"
           placeholder={t('e.g. House 12, Street 4, Karachi', 'مثال: گھر 12، گلی 4، کراچی')}
           value={form.address}
-          onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+          onChange={e => {
+            setForm(p => ({ ...p, address: e.target.value }));
+            if (error) setError('');
+          }}
           accent={ACCENT}
         />
 
@@ -132,7 +140,10 @@ const CustomerRegister = () => {
           type="email"
           placeholder={t('e.g. ayesha@example.com', 'مثال: ayesha@example.com')}
           value={form.email}
-          onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+          onChange={e => {
+            setForm(p => ({ ...p, email: e.target.value }));
+            if (error) setError('');
+          }}
           onBlur={() => setEmailTouched(true)}
           error={emailTouched && validateEmail(form.email, { t: ti })}
           accent={ACCENT}
@@ -145,7 +156,11 @@ const CustomerRegister = () => {
           type="password"
           placeholder={t('e.g. ilovesmartmaster123', 'مثال: password123')}
           value={form.password}
-          onChange={e => { setForm(p => ({ ...p, password: e.target.value })); if (!passwordTouched) setPasswordTouched(true); }}
+          onChange={e => {
+            setForm(p => ({ ...p, password: e.target.value }));
+            if (error) setError('');
+            if (!passwordTouched) setPasswordTouched(true);
+          }}
           onBlur={() => setPasswordTouched(true)}
           error={passwordTouched && validatePassword(form.password, { t: ti })}
           hint={ti('validation.passwordHint')}
@@ -153,7 +168,7 @@ const CustomerRegister = () => {
         />
 
         {error && (
-          <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-xl text-sm font-bold">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl text-sm font-bold">
             <ShieldAlert size={18} className="flex-shrink-0" />
             {error}
           </div>
@@ -162,7 +177,7 @@ const CustomerRegister = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-lg shadow-teal-900/20 disabled:opacity-60"
+          className="w-full py-3.5 rounded-xl flex items-center justify-center gap-3 text-base font-black text-white shadow-md shadow-teal-900/15 disabled:opacity-60"
           style={{ background: ACCENT_GRADIENT }}
         >
           {loading ? (

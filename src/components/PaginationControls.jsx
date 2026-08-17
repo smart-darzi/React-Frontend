@@ -11,18 +11,18 @@ const PaginationControls = ({ currentPage, totalPages, onPrev, onNext, className
   if (totalPages <= 1) return null;
 
   return (
-    <div className={`flex items-center justify-end gap-5 ${className}`}>
+    <div className={`flex items-center justify-end gap-3 ${className}`}>
       <button
         type="button"
         onClick={onPrev}
         disabled={currentPage === 1}
-        className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+        className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
       >
-        <ChevronLeft size={16} />
+        <ChevronLeft size={13} />
         {t('Previous', 'پچھلا')}
       </button>
 
-      <span className="flex items-center justify-center min-w-[2.25rem] h-9 px-2 rounded-xl text-sm font-black text-white bg-primary shadow-sm">
+      <span className="flex items-center justify-center min-w-[1.75rem] h-7 px-1.5 rounded-lg text-xs font-black text-white bg-primary shadow-sm">
         {currentPage}
       </span>
 
@@ -30,10 +30,10 @@ const PaginationControls = ({ currentPage, totalPages, onPrev, onNext, className
         type="button"
         onClick={onNext}
         disabled={currentPage === totalPages}
-        className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+        className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
       >
         {t('Next', 'اگلا')}
-        <ChevronRight size={16} />
+        <ChevronRight size={13} />
       </button>
     </div>
   );

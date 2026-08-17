@@ -3,12 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Scissors, Lock, ArrowRight, ShieldAlert, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
 import { authService } from '../api/api';
+import { useLanguage } from '../context/LanguageContext';
 import { validatePassword } from '../utils/validators';
 
 // Lands here from the link in the reset-password email:
 // /reset-password?token=...&email=...
 // Both are opaque to the user — they just type their new password twice.
 const ResetPassword = () => {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
   const email = searchParams.get('email') || '';
@@ -51,7 +53,7 @@ const ResetPassword = () => {
     <div className="min-h-[100dvh] flex flex-col lg:flex-row overflow-y-auto">
       {/* ── LEFT BRAND PANEL ── */}
       <div
-        className="flex flex-row lg:flex-col items-center lg:items-stretch justify-start lg:justify-between w-full lg:w-[48%] gap-4 lg:gap-0 p-5 lg:p-[clamp(1.5rem,4vh,3.5rem)] relative overflow-hidden shrink-0"
+        className="flex flex-row lg:flex-col items-center lg:items-stretch justify-start lg:justify-between w-full lg:w-[48%] gap-4 lg:gap-0 p-4 sm:p-5 lg:p-[clamp(1.5rem,4vh,3.5rem)] relative overflow-hidden shrink-0"
         style={{ background: 'linear-gradient(145deg, #0E606E 0%, #0A4A55 50%, #083840 100%)' }}
       >
         <div className="hidden lg:block absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10"
@@ -98,13 +100,13 @@ const ResetPassword = () => {
           />
         </svg>
 
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <Scissors className="text-white" size={22} />
+        <div className="flex items-center gap-2.5 sm:gap-3 relative z-10 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/10 flex-shrink-0">
+            <Scissors className="text-white" size={20} />
           </div>
-          <div>
-            <p className="text-white font-black text-lg tracking-widest uppercase">Smart Master</p>
-            <p className="text-white/50 text-xs font-medium tracking-widest">TAILORING MANAGEMENT</p>
+          <div className="min-w-0">
+            <p className="text-white font-black text-base sm:text-lg tracking-widest uppercase truncate">Smart Master</p>
+            <p className="text-white/50 text-[10px] sm:text-xs font-medium tracking-widest truncate">TAILORING MANAGEMENT</p>
           </div>
         </div>
 
@@ -129,7 +131,7 @@ const ResetPassword = () => {
       </div>
 
       {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex items-start lg:items-center justify-center p-[clamp(1rem,4vh,2rem)] px-[clamp(1.25rem,5vw,2rem)] bg-slate-50">
+      <div className="flex-1 flex items-center justify-center p-[clamp(1rem,4vh,2rem)] px-[clamp(1.25rem,5vw,2rem)] bg-slate-50">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -142,24 +144,24 @@ const ResetPassword = () => {
                 <div className="w-14 h-14 bg-emerald-50 ring-8 ring-emerald-50/60 rounded-full flex items-center justify-center text-emerald-600">
                   <CheckCircle2 size={26} />
                 </div>
-                <h2 className="text-3xl font-black text-slate-800 tracking-tighter">Password Reset Successful</h2>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">Password Reset Successful</h2>
                 <p className="text-slate-500 font-medium">You can now log in with your new password. Redirecting to the login page...</p>
               </div>
-              <Link to="/login" className="primary-btn w-full py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25">
-                Go to Login <ArrowRight size={20} />
+              <Link to="/login" className="primary-btn w-full py-4 sm:py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25">
+                {t('Go to Login', 'لاگ ان پر جائیں')} <ArrowRight size={20} />
               </Link>
             </motion.div>
           ) : (
             <>
               <Link to="/login" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary transition-colors">
-                <ArrowLeft size={16} /> Back to Login
+                <ArrowLeft size={16} /> {t('Back to Login', 'لاگ ان پر واپس جائیں')}
               </Link>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-4xl font-black text-slate-800 tracking-tighter">Set New Password</h2>
-                  <p className="text-slate-500 font-medium text-lg">
-                    {email ? <>Account: <span className="font-black text-slate-700">{email}</span></> : 'Enter your new password'}
+                  <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tighter">Set New Password</h2>
+                  <p className="text-slate-500 font-medium text-base sm:text-lg break-words">
+                    {email ? <>Account: <span className="font-black text-slate-700 break-all">{email}</span></> : 'Enter your new password'}
                   </p>
                 </div>
 
@@ -168,13 +170,13 @@ const ResetPassword = () => {
                     New Password
                   </label>
                   <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                    <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
+                    <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
                       <Lock size={18} className="text-slate-400" />
                     </div>
                     <input
                       type="password"
                       placeholder="••••••••"
-                      className="flex-1 px-4 py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                      className="flex-1 min-w-0 px-4 py-4 sm:py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       required
@@ -188,13 +190,13 @@ const ResetPassword = () => {
                     Confirm Password
                   </label>
                   <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                    <div className="flex items-center justify-center px-4 bg-slate-100/80 border-r border-slate-200 min-w-[52px]">
+                    <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
                       <Lock size={18} className="text-slate-400" />
                     </div>
                     <input
                       type="password"
                       placeholder="••••••••"
-                      className="flex-1 px-4 py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                      className="flex-1 min-w-0 px-4 py-4 sm:py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                       required
@@ -203,7 +205,7 @@ const ResetPassword = () => {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-5 py-4 rounded-xl text-sm font-bold">
+                  <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl text-sm font-bold">
                     <ShieldAlert size={18} className="flex-shrink-0" />
                     {error}
                   </div>
@@ -212,7 +214,7 @@ const ResetPassword = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="primary-btn w-full py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25 disabled:opacity-60"
+                  className="primary-btn w-full py-4 sm:py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25 disabled:opacity-60"
                 >
                   {loading ? 'Resetting...' : (
                     <>Reset Password <ArrowRight size={20} /></>

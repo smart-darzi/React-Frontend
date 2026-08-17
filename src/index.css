@@ -170,7 +170,7 @@ h1, h2, h3, .font-display {
 }
 
 .input-field {
-  @apply w-full px-5 py-4 bg-white/60 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all duration-200;
+  @apply w-full px-3 py-3 sm:px-5 sm:py-4 bg-white/60 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all duration-200;
   /* Mobile Safari/Chrome auto-zoom the whole page in when a focused input's
      font-size is under 16px, then zoom back out on blur — the "zoom in/out"
      jump reported on the Block Report modal's textarea. Pinning this to

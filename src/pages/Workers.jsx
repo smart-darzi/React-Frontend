@@ -15,6 +15,7 @@ import PaginationControls from '../components/PaginationControls';
 import DirectoryHero from '../components/DirectoryHero';
 import PageWaveBackdrop from '../components/PageWaveBackdrop';
 import { getBadgeColor } from '../utils/badgeColors';
+import Dropdown from '../components/Dropdown';
 
 const EMPTY = { name: '', role: '', phone: '', email: '', password: '' };
 
@@ -258,7 +259,7 @@ const Workers = () => {
             {/* Left — live preview card, same pattern as the Add Customer
                 page: avatar + name/role, plus a couple of quick facts
                 instead of a nav menu. */}
-            <div className="w-full lg:w-72 bg-white rounded-xl p-6 flex-shrink-0">
+            <div className="w-full lg:w-72 bg-white rounded-xl p-4 sm:p-6 flex-shrink-0">
               <div className="flex items-center gap-3 pb-5 mb-5 border-b border-slate-100">
                 <span className="w-12 h-12 rounded-full text-white flex items-center justify-center text-lg font-black flex-shrink-0" style={{ background: 'linear-gradient(135deg, #10707F, #0A4A55)' }}>
                   {form.name.trim() ? form.name.trim().charAt(0).toUpperCase() : <HardHat size={20} />}
@@ -301,14 +302,13 @@ const Workers = () => {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 py-4">
                   <label className="text-sm font-bold text-slate-700 flex-shrink-0">{t('Role', 'کام')} *</label>
-                  <select
-                    className="flex-1 text-left bg-transparent border-none focus:outline-none focus:ring-0 text-slate-600 cursor-pointer min-w-0"
+                  <Dropdown
                     value={form.role}
-                    onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-                  >
-                    <option value="">{t('Select role...', 'کام منتخب کریں...')}</option>
-                    {ROLES.map(r => <option key={r} value={r}>{td(r)}</option>)}
-                  </select>
+                    options={ROLES.map(r => ({ value: r, label: td(r) }))}
+                    onChange={role => setForm(p => ({ ...p, role }))}
+                    placeholder={t('Select role...', 'کام منتخب کریں...')}
+                    triggerClassName="flex-1 w-full flex items-center justify-between text-left bg-transparent border-none focus:outline-none focus:ring-0 text-slate-600 cursor-pointer min-w-0 py-1"
+                  />
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 py-4">
@@ -366,10 +366,10 @@ const Workers = () => {
                         'ای میل اور پاس ورڈ دیں تاکہ یہ ورکر خود لاگ ان کر کے اپنے ٹاسکس دیکھ سکے۔'
                       )}
                     </p>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                       <div className="space-y-2">
                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Mail size={13} /> Email
+                          <Mail size={13} /> {t('Email', 'ای میل')}
                         </label>
                         <input
                           type="email"
@@ -385,7 +385,7 @@ const Workers = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Lock size={13} /> Password
+                          <Lock size={13} /> {t('Password', 'پاس ورڈ')}
                         </label>
                         <input
                           type="password"
@@ -429,9 +429,9 @@ const Workers = () => {
           account from the public /register page and are waiting for the
           admin to approve them before they can log in. */}
       {workers.some(w => w.isApproved === false) && (
-        <div className="glass-card p-8 rounded-xl space-y-5 border-2 border-amber-200 bg-amber-50/40">
-          <h2 className="text-lg font-black text-amber-700 uppercase tracking-tighter flex items-center gap-2">
-            <Clock size={20} /> {t('Pending Approval', 'منظوری کا انتظار')}
+        <div className="glass-card p-4 sm:p-8 rounded-xl space-y-4 sm:space-y-5 border-2 border-amber-200 bg-amber-50/40">
+          <h2 className="text-sm sm:text-lg font-black text-amber-700 uppercase tracking-tighter flex items-center gap-2">
+            <Clock size={16} className="sm:hidden" /><Clock size={20} className="hidden sm:block" /> {t('Pending Approval', 'منظوری کا انتظار')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {workers.filter(w => w.isApproved === false).map((w, i) => (
@@ -474,10 +474,10 @@ const Workers = () => {
           Paged 4 at a time (2x2) instead of dumping the whole roster on
           the page; Prev/Next below pages through the rest. */}
       {workers.filter(w => w.isApproved !== false).length === 0 ? (
-        <div className="glass-card p-20 rounded-xl text-center">
-          <HardHat size={48} className="mx-auto mb-4 text-slate-300" />
-          <h3 className="text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('No workers yet', 'ابھی کوئی ورکر نہیں')}</h3>
-          <p className="text-slate-400 font-medium mt-2">{t('Use the Add Worker button to add your first worker', 'Add Worker بٹن سے پہلا ورکر شامل کریں')}</p>
+        <div className="glass-card p-8 sm:p-20 rounded-xl text-center">
+          <HardHat size={40} className="mx-auto mb-4 text-slate-300 sm:hidden" /><HardHat size={48} className="mx-auto mb-4 text-slate-300 hidden sm:block" />
+          <h3 className="text-xl sm:text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('No workers yet', 'ابھی کوئی ورکر نہیں')}</h3>
+          <p className="text-slate-400 font-medium mt-2 text-sm sm:text-base">{t('Use the Add Worker button to add your first worker', 'Add Worker بٹن سے پہلا ورکر شامل کریں')}</p>
         </div>
       ) : (
         <>

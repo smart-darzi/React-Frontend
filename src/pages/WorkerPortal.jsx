@@ -34,7 +34,7 @@ const SectionHeading = ({ children, eyebrow }) => (
     {eyebrow && <p className="text-[11px] font-bold text-primary/70 uppercase tracking-[0.2em] mb-1">{eyebrow}</p>}
     <div className="flex items-center gap-2.5">
       <span className="w-1.5 h-6 rounded-full bg-primary flex-shrink-0" />
-      <h2 className="font-display text-2xl font-extrabold text-slate-900">{children}</h2>
+      <h2 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900">{children}</h2>
     </div>
   </div>
 );
@@ -214,8 +214,10 @@ const WorkerPortal = () => {
   }
 
   return (
-    <div className="min-h-screen fabric-bg p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen fabric-bg flex flex-col">
+      <div className="p-3 sm:p-4 md:p-8 flex-1 flex flex-col">
+      <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+        <div className="space-y-6 sm:space-y-8 flex-1">
         <motion.header
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,38 +226,38 @@ const WorkerPortal = () => {
           style={{ background: 'linear-gradient(155deg, #10707F 0%, #0E606E 50%, #0A4A55 100%)', boxShadow: '0 20px 40px -20px rgba(10,74,85,0.5)' }}
         >
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }} />
-          <div className="relative flex items-center justify-between gap-4 p-6 md:p-7">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                <HardHat size={22} />
+          <div className="relative flex flex-wrap items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 md:p-7">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <HardHat size={20} />
               </div>
               <div className="min-w-0">
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('workerPortal.portalLabel')}</p>
-                <h1 className="font-display text-xl font-extrabold text-white truncate">
+                <p className="text-white/60 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('workerPortal.portalLabel')}</p>
+                <h1 className="font-display text-lg sm:text-xl font-extrabold text-white truncate">
                   {t(`workerPortal.greeting.${getGreetingKey()}`)}, {tn(currentWorker?.name?.split(' ')[0]) || 'there'}
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
               <div className="flex items-center bg-white/15 border border-white/20 rounded-xl p-1 gap-0.5">
                 <button
                   type="button"
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
                 >
                   English
                 </button>
                 <button
                   type="button"
                   onClick={() => setLanguage('ur')}
-                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
                 >
                   اردو
                 </button>
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-white/10 border border-white/15 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-all flex-shrink-0"
               >
                 <LogOut size={16} /> {t('workerPortal.logout')}
               </button>
@@ -265,7 +267,7 @@ const WorkerPortal = () => {
           {/* ── Section tabs — switches between "Assigned Orders" and "Work
               History" as two separate views, rather than anchoring a scroll
               to sections stacked in one long page. ── */}
-          <nav className="relative flex items-center gap-1 px-4 md:px-5 border-t border-white/15 overflow-x-auto scrollbar-hide">
+          <nav className="relative flex items-center gap-1 px-3 sm:px-4 md:px-5 border-t border-white/15 overflow-x-auto scrollbar-hide">
             {[
               { id: 'assigned-orders', label: t('workerPortal.tabs.assignedOrders') },
               { id: 'work-history', label: t('workerPortal.tabs.workHistory') },
@@ -290,7 +292,7 @@ const WorkerPortal = () => {
           <SectionHeading eyebrow={`${myOrders.length} ${t('workerPortal.assignedCount')}`}>{t('workerPortal.assignedOrdersHeading')}</SectionHeading>
 
           {myOrders.length === 0 ? (
-            <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
+            <div className="bg-white rounded-xl border border-dashed border-slate-200 p-6 sm:p-10 text-center">
               <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                 <Scissors size={26} />
               </div>
@@ -325,17 +327,17 @@ const WorkerPortal = () => {
                     transition={{ duration: 0.3, delay: cardIndex * 0.05, ease: 'easeOut' }}
                     className="relative bg-white rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                   >
-                    <div className="p-6 space-y-4">
+                    <div className="p-4 sm:p-6 space-y-4">
                       {/* ── Title row: icon tinted by status, name, and a single
                           bold status line on the right — the one thing that
                           matters most about this card at a glance. ── */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                           <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ backgroundColor: `${(WORKER_STATUS_META[workerStatus] || {}).color || '#94A3B8'}1A`, color: (WORKER_STATUS_META[workerStatus] || {}).color || '#64748B' }}
                           >
-                            <Scissors size={19} />
+                            <Scissors size={18} />
                           </div>
                           <div className="min-w-0">
                             <h3 className="font-display text-lg font-bold text-slate-900 truncate">{td(order.orderType)}</h3>
@@ -362,7 +364,7 @@ const WorkerPortal = () => {
 
                       {/* ── Secondary tags: stage, re-assigned, wait-your-turn —
                           quieter than the primary status so they don't compete. ── */}
-                      <div className="flex flex-wrap items-center gap-1.5 pl-[3.25rem]">
+                      <div className="flex flex-wrap items-center gap-1.5 pl-0 sm:pl-[3.25rem]">
                         <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-slate-50 text-slate-500 border border-slate-100">
                           {order.workStage ? t(`stages.${order.workStage}`, { defaultValue: order.workStage }) : t('workerPortal.notStarted')}
                         </span>
@@ -384,13 +386,13 @@ const WorkerPortal = () => {
                       </div>
 
                       {workerStatus === 'Blocked' && order.workerBlockReason && (
-                        <p className="text-red-500 text-xs font-bold pl-[3.25rem]">{t('workerPortal.blockReason', { reason: order.workerBlockReason })}</p>
+                        <p className="text-red-500 text-xs font-bold pl-0 sm:pl-[3.25rem]">{t('workerPortal.blockReason', { reason: order.workerBlockReason })}</p>
                       )}
                       {workerStatus === 'Blocked' && order.workerWantsGuidance && !order.adminGuidance && (
-                        <p className="text-amber-500 text-xs font-bold pl-[3.25rem]">{t('workerPortal.waitingForGuidanceRequest')}</p>
+                        <p className="text-amber-500 text-xs font-bold pl-0 sm:pl-[3.25rem]">{t('workerPortal.waitingForGuidanceRequest')}</p>
                       )}
                       {workerStatus === 'Blocked' && order.adminGuidance && (
-                        <div className="flex items-start gap-1.5 ml-[3.25rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-2 rounded-xl">
+                        <div className="flex items-start gap-1.5 ml-0 sm:ml-[3.25rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold px-3 py-2 rounded-xl">
                           <MessageSquareWarning size={14} className="mt-0.5 flex-shrink-0" />
                           <span>{t('workerPortal.adminGuidance', { guidance: language === 'ur' ? (order.adminGuidanceUrdu || order.adminGuidance) : order.adminGuidance })}</span>
                         </div>
@@ -421,7 +423,7 @@ const WorkerPortal = () => {
                           <Wrapper
                             type={linkedDesign ? 'button' : undefined}
                             onClick={linkedDesign ? () => setViewingDesign(linkedDesign) : undefined}
-                            className={`flex items-center gap-3 ml-[3.25rem] bg-slate-50 border border-slate-100 rounded-xl p-2.5 pr-4 text-left ${linkedDesign ? 'hover:bg-slate-100 hover:border-slate-200 transition-colors cursor-pointer' : ''}`}
+                            className={`flex items-center gap-3 ml-0 sm:ml-[3.25rem] bg-slate-50 border border-slate-100 rounded-xl p-2.5 pr-4 text-left ${linkedDesign ? 'hover:bg-slate-100 hover:border-slate-200 transition-colors cursor-pointer' : ''}`}
                           >
                             <div className="relative flex-shrink-0">
                               <DesignThumb
@@ -453,7 +455,7 @@ const WorkerPortal = () => {
                           elastic/embroidery/style/book & design numbers. Kept
                           collapsed by default so cards don't get overwhelming,
                           but every field the Admin filled in is available here. */}
-                      <div className="pl-[3.25rem]">
+                      <div className="pl-0 sm:pl-[3.25rem]">
                         <button
                           type="button"
                           onClick={() => toggleExpanded(order._id)}
@@ -464,19 +466,21 @@ const WorkerPortal = () => {
                           <ChevronDown size={13} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                         {isExpanded && (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-3">
-                            <DetailField label={t('workerPortal.fields.category')} value={td(order.orderCategory)} />
-                            <DetailField label={t('workerPortal.fields.neck')} value={td(order.neckStyle)} />
-                            <DetailField label={t('workerPortal.fields.cuff')} value={td(order.cuffStyle)} />
-                            <DetailField label={t('workerPortal.fields.lap')} value={td(order.lapStyle)} />
-                            <DetailField label={t('workerPortal.fields.pant')} value={td(order.pantStyle)} />
-                            <DetailField label={t('workerPortal.fields.pocket')} value={td(order.pocketStyle)} />
-                            <DetailField label={t('workerPortal.fields.button')} value={td(order.buttonStyle)} />
-                            <DetailField label={t('workerPortal.fields.elastic')} value={td(order.elastic)} />
-                            <DetailField label={t('workerPortal.fields.embroidery')} value={td(order.embroidery)} />
-                            <DetailField label={t('workerPortal.fields.stitchStyle')} value={td(order.style)} />
-                            <DetailField label={t('workerPortal.fields.bookNumber')} value={order.bookNumber} />
-                            <DetailField label={t('workerPortal.fields.designNumber')} value={order.designNumber} />
+                          <div className="overflow-x-auto -mx-1 px-1 scrollbar-hide">
+                            <div className="grid grid-cols-3 gap-2.5 mt-3 min-w-[420px] sm:min-w-0">
+                              <DetailField label={t('workerPortal.fields.category')} value={td(order.orderCategory)} />
+                              <DetailField label={t('workerPortal.fields.neck')} value={td(order.neckStyle)} />
+                              <DetailField label={t('workerPortal.fields.cuff')} value={td(order.cuffStyle)} />
+                              <DetailField label={t('workerPortal.fields.lap')} value={td(order.lapStyle)} />
+                              <DetailField label={t('workerPortal.fields.pant')} value={td(order.pantStyle)} />
+                              <DetailField label={t('workerPortal.fields.pocket')} value={td(order.pocketStyle)} />
+                              <DetailField label={t('workerPortal.fields.button')} value={td(order.buttonStyle)} />
+                              <DetailField label={t('workerPortal.fields.elastic')} value={td(order.elastic)} />
+                              <DetailField label={t('workerPortal.fields.embroidery')} value={td(order.embroidery)} />
+                              <DetailField label={t('workerPortal.fields.stitchStyle')} value={td(order.style)} />
+                              <DetailField label={t('workerPortal.fields.bookNumber')} value={order.bookNumber} />
+                              <DetailField label={t('workerPortal.fields.designNumber')} value={order.designNumber} />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -487,7 +491,7 @@ const WorkerPortal = () => {
                         screens. Hidden entirely once the stage is invalid or
                         the worker is just waiting on the Admin. ── */}
                     {!awaitingAdmin && stageIndex !== -1 && (
-                      <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-4">
+                      <div className="border-t border-slate-100 bg-slate-50/60 px-4 sm:px-6 py-3.5 sm:py-4">
                         {workerStatus === 'Pending' ? (
                           lockedByOtherOrder ? (
                             <div
@@ -607,7 +611,7 @@ const WorkerPortal = () => {
           <div>
             <SectionHeading eyebrow={`${myHistory.length} ${t('workerPortal.completedCount')}`}>{t('workerPortal.historyHeading')}</SectionHeading>
             {myHistory.length === 0 ? (
-              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-10 text-center">
+              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-6 sm:p-10 text-center">
                 <div className="w-14 h-14 bg-primary-light ring-8 ring-primary-light/40 rounded-full flex items-center justify-center mx-auto mb-4 text-primary/40">
                   <Hash size={26} />
                 </div>
@@ -620,12 +624,12 @@ const WorkerPortal = () => {
                 <table className="w-full text-sm min-w-[640px]">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
-                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">
+                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-4 sm:px-6 py-3">
                         <span className="flex items-center gap-1.5"><Hash size={11} /> {t('workerPortal.table.order')}</span>
                       </th>
-                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.customer')}</th>
-                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.stage')}</th>
-                      <th className="text-right font-bold uppercase text-[10px] tracking-widest text-slate-400 px-6 py-3">{t('workerPortal.table.date')}</th>
+                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-4 sm:px-6 py-3">{t('workerPortal.table.customer')}</th>
+                      <th className="text-left font-bold uppercase text-[10px] tracking-widest text-slate-400 px-4 sm:px-6 py-3">{t('workerPortal.table.stage')}</th>
+                      <th className="text-right font-bold uppercase text-[10px] tracking-widest text-slate-400 px-4 sm:px-6 py-3">{t('workerPortal.table.date')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -638,14 +642,14 @@ const WorkerPortal = () => {
                         onClick={() => navigate(`/order/${order._id}`)}
                         className={`cursor-pointer transition-colors hover:bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
                       >
-                        <td className="px-6 py-3.5 font-bold text-slate-800 whitespace-nowrap">{td(order.orderType)}</td>
-                        <td className="px-6 py-3.5 text-slate-500 font-medium whitespace-nowrap">{getCustomerName(order.customerId)}</td>
-                        <td className="px-6 py-3.5">
+                        <td className="px-4 sm:px-6 py-3.5 font-bold text-slate-800 whitespace-nowrap">{td(order.orderType)}</td>
+                        <td className="px-4 sm:px-6 py-3.5 text-slate-500 font-medium whitespace-nowrap">{getCustomerName(order.customerId)}</td>
+                        <td className="px-4 sm:px-6 py-3.5">
                           <span className="inline-block px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 whitespace-nowrap">
                             {t(`stages.${stage}`, { defaultValue: stage })}
                           </span>
                         </td>
-                        <td className="px-6 py-3.5 text-right text-slate-400 text-xs font-medium whitespace-nowrap">
+                        <td className="px-4 sm:px-6 py-3.5 text-right text-slate-400 text-xs font-medium whitespace-nowrap">
                           {new Date(at).toLocaleString()}
                         </td>
                       </motion.tr>
@@ -655,7 +659,7 @@ const WorkerPortal = () => {
               </div>
 
               {historyTotalPages > 1 && (
-                <div className="flex items-center justify-between gap-4 px-6 py-4 bg-slate-50 border-t border-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-4 bg-slate-50 border-t border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {t('workerPortal.pageOf', { current: historySafePage, total: historyTotalPages })}
                   </p>
@@ -672,8 +676,11 @@ const WorkerPortal = () => {
           </div>
         )}
 
-        <PortalFooter />
+        </div>
+
+        </div>
       </div>
+      <PortalFooter />
 
       {confirmModal && (
         <ConfirmModal

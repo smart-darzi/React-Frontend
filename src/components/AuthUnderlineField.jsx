@@ -15,7 +15,7 @@ const AuthUnderlineField = ({ label, required, error, hint, className = '', inpu
       )}
       <div className="relative">
         <input
-          className={`w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-300 text-[15px] py-1.5 ${inputClassName}`}
+          className={`w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-300 text-base sm:text-[15px] py-1.5 ${inputClassName}`}
           {...inputProps}
         />
         <div

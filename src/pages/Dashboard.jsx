@@ -135,15 +135,14 @@ const Dashboard = () => {
           label (icon + text) — just at a smaller size/padding on phones —
           instead of collapsing to icon-only, which looked cut off/unclear. */}
       <motion.header {...fadeUp(0)} className="flex flex-row items-center justify-between gap-2 sm:gap-3">
-        <div className="min-w-0">
-          <p className="hidden sm:block text-primary/70 text-[11px] font-bold uppercase tracking-[0.2em] mb-1">{t('dashboard.smartMasterAdmin')}</p>
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 truncate">{t('dashboard.title')}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-lg min-[400px]:text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 truncate">{t('dashboard.title')}</h1>
           <p className="hidden sm:block text-slate-500 mt-1.5 font-medium truncate">{t('dashboard.tailoringManagement')}</p>
         </div>
         <div className="flex flex-row items-center gap-1.5 sm:gap-4 flex-shrink-0">
           <button
             onClick={() => navigate('/add-order')}
-            className="flex items-center justify-center gap-1 sm:gap-3 px-2.5 py-2 sm:px-6 sm:py-3.5 rounded-xl font-bold text-[11px] sm:text-base bg-white text-primary border border-primary/20 shadow-sm hover:bg-primary-light transition-all whitespace-nowrap flex-shrink-0"
+            className="primary-btn flex items-center justify-center gap-1 sm:gap-3 px-2.5 py-2 sm:px-6 sm:py-3.5 rounded-xl text-[11px] sm:text-base shadow-sm whitespace-nowrap flex-shrink-0"
           >
             <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> {t('dashboard.newOrder')}
           </button>

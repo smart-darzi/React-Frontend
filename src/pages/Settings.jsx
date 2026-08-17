@@ -85,10 +85,10 @@ const Settings = () => {
       </motion.header>
 
       {/* Shop Info */}
-      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-8">
-        <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-          <div className="bg-primary/10 p-3 rounded-xl text-primary"><Store size={24} /></div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('Shop Information', 'دکان کی معلومات')}</h2>
+      <div className="glass-card p-4 sm:p-8 lg:p-10 rounded-xl space-y-5 sm:space-y-8">
+        <div className="flex items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-6">
+          <div className="bg-primary/10 p-2 sm:p-3 rounded-xl text-primary flex-shrink-0"><Store size={18} className="sm:hidden" /><Store size={24} className="hidden sm:block" /></div>
+          <h2 className="text-base sm:text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('Shop Information', 'دکان کی معلومات')}</h2>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-6">
           <Field label={t('Shop Name', 'دکان کا نام')} value={settings.shopName} onChange={set('shopName')} placeholder="Smart Master Tailoring..." />
@@ -126,21 +126,21 @@ const Settings = () => {
       </div>
 
       {/* App Info */}
-      <div className="glass-card p-6 sm:p-8 lg:p-10 rounded-xl space-y-4">
-        <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-          <div className="bg-primary/10 p-3 rounded-xl text-primary"><SettingsIcon size={24} /></div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('App Info', 'ایپ کی معلومات')}</h2>
+      <div className="glass-card p-4 sm:p-8 lg:p-10 rounded-xl space-y-4">
+        <div className="flex items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-6">
+          <div className="bg-primary/10 p-2 sm:p-3 rounded-xl text-primary flex-shrink-0"><SettingsIcon size={18} className="sm:hidden" /><SettingsIcon size={24} className="hidden sm:block" /></div>
+          <h2 className="text-base sm:text-2xl font-black text-slate-800 tracking-tighter uppercase">{t('App Info', 'ایپ کی معلومات')}</h2>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {[
             [t('Version', 'ورژن'), '1.0.0'],
             [t('Mode', 'موڈ'), t('Offline', 'آف لائن')],
             [t('Platform', 'پلیٹ فارم'), 'Smart Master POS'],
             [t('Built for', 'کس کے لیے بنایا گیا'), t('Tailoring Shops', 'درزی کی دکانوں کے لیے')],
           ].map(([k, v]) => (
-            <div key={k} className="bg-slate-50 p-3 sm:p-4 rounded-xl min-w-0">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{k}</p>
-              <p className="font-bold text-slate-700 mt-1 truncate">{v}</p>
+            <div key={k} className="bg-slate-50 p-2.5 sm:p-4 rounded-xl min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{k}</p>
+              <p className="font-bold text-slate-700 text-xs sm:text-base mt-1 break-words leading-snug">{v}</p>
             </div>
           ))}
         </div>

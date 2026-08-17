@@ -46,15 +46,26 @@ export const LocalStateProvider = ({ children }) => {
   // seen a popup for yet. IDs the admin has already been shown/dismissed
   // are remembered in localStorage so they don't pop up again on refresh.
   const [pendingWorkerAlerts, setPendingWorkerAlerts] = useState([]);
-  const getSeenPendingIds = () => {
+  const [pendingCustomerAlerts, setPendingCustomerAlerts] = useState([]);
+  const getSeenPendingWorkerIds = () => {
     try { return JSON.parse(localStorage.getItem('sd_seen_pending_workers')) || []; } catch { return []; }
   };
+  const getSeenPendingCustomerIds = () => {
+    try { return JSON.parse(localStorage.getItem('sd_seen_customer_portal_accounts')) || []; } catch { return []; }
+  };
   const dismissWorkerAlert = (id) => {
-    const seen = getSeenPendingIds();
+    const seen = getSeenPendingWorkerIds();
     if (!seen.includes(id)) {
       localStorage.setItem('sd_seen_pending_workers', JSON.stringify([...seen, id]));
     }
     setPendingWorkerAlerts(prev => prev.filter(w => w._id !== id));
+  };
+  const dismissCustomerAlert = (id) => {
+    const seen = getSeenPendingCustomerIds();
+    if (!seen.includes(id)) {
+      localStorage.setItem('sd_seen_customer_portal_accounts', JSON.stringify([...seen, id]));
+    }
+    setPendingCustomerAlerts(prev => prev.filter(c => c._id !== id));
   };
 
   const VALID_STATUSES = ['Pending','Active','In Progress','Completed','Received By Customer'];
@@ -84,14 +95,30 @@ export const LocalStateProvider = ({ children }) => {
         setWorkers(wData);
         setDesigns(dData);
 
-        // Baseline: whatever's already pending on first load isn't "new" —
-        // mark it seen so the popup only fires for registrations that
-        // happen *after* the admin starts this session.
-        const seen = getSeenPendingIds();
-        const initiallyPending = wData.filter(w => w.isApproved === false).map(w => w._id);
-        const missing = initiallyPending.filter(id => !seen.includes(id));
-        if (missing.length) {
-          localStorage.setItem('sd_seen_pending_workers', JSON.stringify([...seen, ...missing]));
+        // Show a popup right away on login for anything the admin hasn't
+        // seen/dismissed yet — including registrations that happened while
+        // the admin was logged out. Previously these were silently marked
+        // "seen" on load, so the admin never got notified about them at all.
+        const seen = getSeenPendingWorkerIds();
+        const initiallyPending = wData.filter(w => w.isApproved === false && !seen.includes(w._id));
+        if (initiallyPending.length) {
+          setPendingWorkerAlerts(prev => {
+            const existingIds = prev.map(w => w._id);
+            const toAdd = initiallyPending.filter(w => !existingIds.includes(w._id));
+            return toAdd.length ? [...prev, ...toAdd] : prev;
+          });
+        }
+
+        // Same for customers who already have portal access but haven't
+        // been shown to the admin yet.
+        const seenCustomers = getSeenPendingCustomerIds();
+        const unseenWithPortalAccess = cData.filter(c => Boolean(c.email) && !seenCustomers.includes(c._id));
+        if (unseenWithPortalAccess.length) {
+          setPendingCustomerAlerts(prev => {
+            const existingIds = prev.map(c => c._id);
+            const toAdd = unseenWithPortalAccess.filter(c => !existingIds.includes(c._id));
+            return toAdd.length ? [...prev, ...toAdd] : prev;
+          });
         }
       } catch (e) {
         console.error('Fetch error:', e);
@@ -107,9 +134,14 @@ export const LocalStateProvider = ({ children }) => {
     if (!currentUser) return;
     const poll = async () => {
       try {
-        const wData = await workerService.getAll();
+        const [wData, cData] = await Promise.all([
+          workerService.getAll(),
+          customerService.getAll(),
+        ]);
         setWorkers(wData);
-        const seen = getSeenPendingIds();
+        setCustomers(cData.map(c => ({ ...c, address: c.familyName || '' })));
+
+        const seen = getSeenPendingWorkerIds();
         const freshlyPending = wData.filter(w => w.isApproved === false && !seen.includes(w._id));
         if (freshlyPending.length) {
           setPendingWorkerAlerts(prev => {
@@ -118,8 +150,18 @@ export const LocalStateProvider = ({ children }) => {
             return toAdd.length ? [...prev, ...toAdd] : prev;
           });
         }
+
+        const seenCustomers = getSeenPendingCustomerIds();
+        const newlyRegisteredCustomers = cData.filter(c => Boolean(c.email) && !seenCustomers.includes(c._id));
+        if (newlyRegisteredCustomers.length) {
+          setPendingCustomerAlerts(prev => {
+            const existingIds = prev.map(c => c._id);
+            const toAdd = newlyRegisteredCustomers.filter(c => !existingIds.includes(c._id));
+            return toAdd.length ? [...prev, ...toAdd] : prev;
+          });
+        }
       } catch (e) {
-        console.error('Worker poll error:', e);
+        console.error('Worker/customer poll error:', e);
       }
     };
     const interval = setInterval(poll, 20000); // check every 20s
@@ -195,14 +237,18 @@ export const LocalStateProvider = ({ children }) => {
     }
   };
   const saveSize = async (customerId, sizingData) => {
+    const mergedPayload = { ...(sizes[customerId] || {}), ...(sizingData || {}) };
     const exists = sizes[customerId];
     const res = exists
-      ? await sizingService.update({ customerId, ...sizingData })
-      : await sizingService.add({ customerId, ...sizingData });
-    const saved = res.updatedSize || res.size || sizingData;
-    setSizes(prev => ({ ...prev, [customerId]: saved }));
+      ? await sizingService.update({ customerId, ...mergedPayload })
+      : await sizingService.add({ customerId, ...mergedPayload });
+    const saved = res.updatedSize || res.size || mergedPayload;
+    setSizes(prev => ({
+      ...prev,
+      [customerId]: { ...(prev[customerId] || {}), ...saved },
+    }));
     toast('Sizing saved', 'ماپ محفوظ ہو گئی');
-    return saved;
+    return { ...(sizes[customerId] || {}), ...saved };
   };
 
   /* ── Orders ── */
@@ -390,6 +436,7 @@ export const LocalStateProvider = ({ children }) => {
       registerWorker, approveWorker,
       addDesign, updateDesign, deleteDesign, translateMissingDesigns,
       pendingWorkerAlerts, dismissWorkerAlert,
+      pendingCustomerAlerts, dismissCustomerAlert,
       getStats,
     }}>
       {children}

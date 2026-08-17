@@ -1,26 +1,22 @@
 import React from 'react';
 import { Scissors } from 'lucide-react';
 
-// Big two-column hero header, styled after the reference "Contact List"
-// landing mock: a wavy blob-shaped colour panel on the left carrying the
-// brand mark, a bold oversized heading, a description line and a pill CTA
-// button — and a lighter, wave-textured panel on the right where the
-// phone mockup used to sit. No phone here (as asked) — that space instead
-// holds real, functional content (search / quick actions) passed in via
-// `rightContent`, floating over the same layered-wave background so the
-// right side still reads as "designed", not empty.
+// Big two-column hero header for the customer/worker directory pages: a
+// solid teal panel on the left carrying the brand mark, heading and CTA,
+// and a light panel on the right holding real functional content (search /
+// quick actions) passed in via `rightContent`. Both panels are fully
+// self-contained (own backgrounds) so this component doesn't depend on
+// anything drawn behind it by the page — and stacks to a single column
+// on small screens via the grid below.
 const DirectoryHero = ({ eyebrow, heading, description, cta, rightContent }) => (
-  <div className="relative overflow-hidden rounded-[32px] grid lg:grid-cols-2 min-h-[300px] sm:min-h-[340px] bg-transparent">
-    {/* ── LEFT: wavy blob panel ── */}
+  <div className="relative overflow-hidden rounded-2xl sm:rounded-[32px] grid lg:grid-cols-2 min-h-0">
+    {/* ── LEFT: solid brand panel ── */}
     <div
-      className="relative overflow-hidden px-6 py-8 sm:px-10 sm:py-10 flex flex-col justify-center bg-transparent"
+      className="relative px-5 py-8 sm:px-10 sm:py-10 flex flex-col justify-center"
+      style={{ background: 'linear-gradient(150deg, #10707F 0%, #0E606E 55%, #0A4A55 100%)' }}
     >
-      {/* the big soft blob shape sweeping down the panel, same silhouette
-          as the reference's purple blob */}
-
-
       <div className="relative z-10 flex items-center gap-2.5 mb-6">
-        <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
+        <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20 flex-shrink-0">
           <Scissors className="text-white" size={16} />
         </div>
         <span className="text-white font-black text-xs tracking-[0.2em] uppercase">Smart Master</span>
@@ -32,7 +28,7 @@ const DirectoryHero = ({ eyebrow, heading, description, cta, rightContent }) => 
         </span>
       )}
 
-      <h1 className="relative z-10 text-white font-black text-4xl sm:text-5xl lg:text-6xl leading-[0.95] tracking-tighter uppercase max-w-md">
+      <h1 className="relative z-10 text-white font-black text-3xl sm:text-4xl lg:text-5xl leading-[0.95] tracking-tighter uppercase max-w-md break-words">
         {heading}
       </h1>
 
@@ -45,9 +41,8 @@ const DirectoryHero = ({ eyebrow, heading, description, cta, rightContent }) => 
       {cta && <div className="relative z-10 mt-7">{cta}</div>}
     </div>
 
-    {/* ── RIGHT: layered wave panel — the phone's old spot, now holding
-        real content instead ── */}
-    <div className="relative overflow-hidden bg-transparent px-6 py-8 sm:px-10 sm:py-10 flex items-center justify-center">
+    {/* ── RIGHT: light panel holding real content ── */}
+    <div className="relative bg-slate-100 px-5 py-8 sm:px-10 sm:py-10 flex items-center justify-center">
       <div className="relative z-10 w-full max-w-sm">
         {rightContent}
       </div>

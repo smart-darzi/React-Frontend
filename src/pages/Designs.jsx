@@ -348,12 +348,9 @@ const Designs = () => {
               <p className="text-slate-500 font-medium mt-4 max-w-md">
                 {t('Browse, add and manage the design catalog your customers pick from when placing an order.', 'وہ ڈیزائن کیٹلاگ دیکھیں، شامل کریں اور منظم کریں جس میں سے آپ کے کسٹمرز آرڈر کرتے وقت انتخاب کرتے ہیں۔')}
               </p>
-              <div className="flex flex-wrap items-center gap-3 mt-6">
-                <button onClick={openAdd} className="primary-btn px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20">
-                  <Plus size={18} /> {t('Add Design', 'نیا ڈیزائن')}
-                </button>
-                <a href="#catalog" className="px-6 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold flex items-center gap-2 hover:border-primary/30 hover:text-primary transition-all">
-                  {t('Browse Catalog', 'کیٹلاگ دیکھیں')} <ArrowRight size={16} />
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mt-6">
+                <a href="#catalog" className="primary-btn px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base rounded-xl flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-primary/20">
+                  {t('Browse Catalog', 'کیٹلاگ دیکھیں')} <ArrowRight size={14} className="sm:hidden" /><ArrowRight size={16} className="hidden sm:block" />
                 </a>
               </div>
             </div>
@@ -384,21 +381,21 @@ const Designs = () => {
 
           {/* Real catalog stats strip — no invented testimonials/quotes since
               there's no design-review data; genuine counts instead. */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-14 sm:mt-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mt-14 sm:mt-10">
             {catalogStats.map(({ icon: Icon, value, label }, i) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.06, ease: 'easeOut' }}
-                className="bg-white rounded-xl p-4 sm:p-5 flex items-center gap-3 border border-slate-100"
+                className="bg-white rounded-xl p-3 sm:p-5 flex items-center gap-2 sm:gap-3 border border-slate-100 min-w-0"
               >
-                <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Icon size={18} />
+                <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                  <Icon size={15} className="sm:hidden" /><Icon size={18} className="hidden sm:block" />
                 </span>
-                <div className="min-w-0">
-                  <p className="font-black text-xl sm:text-2xl text-slate-900 leading-none">{value}</p>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1 truncate">{label}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-lg sm:text-2xl text-slate-900 leading-none">{value}</p>
+                  <p className="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1 leading-tight break-words">{label}</p>
                 </div>
               </motion.div>
             ))}
@@ -416,7 +413,7 @@ const Designs = () => {
           <h2 className="text-lg sm:text-2xl font-black text-slate-800 tracking-tight px-1">
             {t('Shop by Category', 'کیٹیگری کے مطابق دیکھیں')}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
             {categoryShowcase.map(({ category, cover, count }, i) => {
               const [en, ur] = category.split(' / ');
               return (
@@ -427,13 +424,13 @@ const Designs = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: i * 0.05, ease: 'easeOut' }}
                   onClick={() => goToCategory(category)}
-                  className={`relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/5] group text-left transition-all ${categoryFilter === category ? 'ring-4 ring-primary/40' : 'hover:-translate-y-1'}`}
+                  className={`relative rounded-lg sm:rounded-2xl overflow-hidden aspect-square sm:aspect-[4/5] group text-left transition-all ${categoryFilter === category ? 'ring-4 ring-primary/40' : 'hover:-translate-y-1'}`}
                 >
-                  <DesignThumb src={cover.images?.[0]?.url} alt={category} className="absolute inset-0 w-full h-full object-cover" iconSize={28} />
+                  <DesignThumb src={cover.images?.[0]?.url} alt={category} className="absolute inset-0 w-full h-full object-cover" iconSize={20} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-                    <p className="text-white font-black text-sm sm:text-lg uppercase tracking-tight truncate">{t(en, ur || en)}</p>
-                    <p className="text-white/80 text-[10px] sm:text-xs font-bold">{count} {t(count === 1 ? 'design' : 'designs', 'ڈیزائنز')}</p>
+                  <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-4">
+                    <p className="text-white font-black text-[10px] sm:text-lg uppercase tracking-tight truncate">{t(en, ur || en)}</p>
+                    <p className="text-white/80 text-[8px] sm:text-xs font-bold">{count} {t(count === 1 ? 'design' : 'designs', 'ڈیزائنز')}</p>
                   </div>
                 </motion.button>
               );
@@ -626,20 +623,20 @@ const Designs = () => {
 
       {/* Search + Filters */}
       {!showForm && designs.length > 0 && (
-        <div id="catalog" className="glass-card p-4 sm:p-6 rounded-xl flex flex-col md:flex-row md:items-center gap-3 sm:gap-4 min-w-0">
-          <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 flex-1">
-            <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200">
-              <Search size={16} className="text-slate-400 sm:hidden" /><Search size={18} className="text-slate-400 hidden sm:block" />
+        <div id="catalog" className="glass-card p-3 sm:p-6 rounded-xl flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 w-full lg:flex-1 lg:min-w-[220px]">
+            <div className="flex items-center justify-center px-2.5 sm:px-4 bg-slate-100/80 border-r border-slate-200 flex-shrink-0">
+              <Search size={15} className="text-slate-400 sm:hidden" /><Search size={18} className="text-slate-400 hidden sm:block" />
             </div>
             <input
               type="text"
               placeholder={t('Search design name...', 'ڈیزائن کا نام تلاش کریں...')}
-              className="flex-1 min-w-0 px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+              className="flex-1 min-w-0 w-full px-2.5 py-2 sm:px-4 sm:py-3 text-xs sm:text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 w-full lg:w-auto lg:flex-shrink lg:justify-end">
             <button
               onClick={() => setCategoryFilter('All')}
               className={`flex-shrink-0 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${categoryFilter === 'All' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
@@ -670,16 +667,16 @@ const Designs = () => {
 
       {/* Designs Grid */}
       {designs.length === 0 ? (
-        <div className="glass-card p-20 rounded-xl text-center">
-          <Palette size={48} className="mx-auto mb-4 text-slate-300" />
-          <h3 className="text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('No designs yet', 'ابھی کوئی ڈیزائن نہیں')}</h3>
-          <p className="text-slate-400 font-medium mt-2">{t('Use the Add Design button to upload your first design', 'Add Design بٹن سے پہلا ڈیزائن اپلوڈ کریں')}</p>
+        <div className="glass-card p-8 sm:p-20 rounded-xl text-center">
+          <Palette size={40} className="mx-auto mb-4 text-slate-300 sm:hidden" /><Palette size={48} className="mx-auto mb-4 text-slate-300 hidden sm:block" />
+          <h3 className="text-xl sm:text-3xl font-black text-slate-400 uppercase tracking-tighter">{t('No designs yet', 'ابھی کوئی ڈیزائن نہیں')}</h3>
+          <p className="text-slate-400 font-medium mt-2 text-sm sm:text-base">{t('Use the Add Design button to upload your first design', 'Add Design بٹن سے پہلا ڈیزائن اپلوڈ کریں')}</p>
         </div>
       ) : filteredDesigns.length === 0 ? (
-        <div className="glass-card p-16 rounded-xl text-center">
-          <Search size={40} className="mx-auto mb-4 text-slate-300" />
-          <h3 className="text-2xl font-black text-slate-400 uppercase tracking-tighter">{t('No matching designs', 'کوئی مماثل ڈیزائن نہیں')}</h3>
-          <p className="text-slate-400 font-medium mt-2">{t('Try changing your search or filters', 'تلاش یا فلٹرز تبدیل کر کے دوبارہ کوشش کریں')}</p>
+        <div className="glass-card p-8 sm:p-16 rounded-xl text-center">
+          <Search size={32} className="mx-auto mb-4 text-slate-300 sm:hidden" /><Search size={40} className="mx-auto mb-4 text-slate-300 hidden sm:block" />
+          <h3 className="text-lg sm:text-2xl font-black text-slate-400 uppercase tracking-tighter">{t('No matching designs', 'کوئی مماثل ڈیزائن نہیں')}</h3>
+          <p className="text-slate-400 font-medium mt-2 text-sm sm:text-base">{t('Try changing your search or filters', 'تلاش یا فلٹرز تبدیل کر کے دوبارہ کوشش کریں')}</p>
         </div>
       ) : (
         <>

@@ -29,9 +29,9 @@ const HISTORY_META = {
 };
 
 const Row = ({ label, value, naLabel }) => (
-  <div className="bg-slate-50 p-4 rounded-xl">
-    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-    <p className="font-bold text-slate-700 text-sm">{value || naLabel}</p>
+  <div className="bg-slate-50 p-3 sm:p-4 rounded-xl min-w-0">
+    <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">{label}</p>
+    <p className="font-bold text-slate-700 text-xs sm:text-sm break-words">{value || naLabel}</p>
   </div>
 );
 
@@ -64,74 +64,74 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-0 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative"
+        className="bg-white rounded-none sm:rounded-xl max-w-2xl w-full h-full sm:h-auto max-h-full sm:max-h-[85vh] overflow-y-auto shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 sm:top-8 sm:right-8 p-3 bg-white/15 hover:bg-white/25 rounded-xl text-white transition-colors z-10"
+          className="absolute top-3 right-3 sm:top-8 sm:right-8 p-2 sm:p-3 bg-white/15 hover:bg-white/25 rounded-xl text-white transition-colors z-10"
         >
-          <X size={20} />
+          <X size={18} className="sm:hidden" /><X size={20} className="hidden sm:block" />
         </button>
 
         {/* ✅ Colored header banner — visually anchors the modal with the
             site's primary color instead of blending into the white body,
             while staying part of the same single card. */}
-        <div className="bg-gradient-to-r from-primary to-primary-dark rounded-t-xl px-6 sm:px-10 py-8">
-          <div className="flex items-center gap-4 pr-14">
-            <div className="bg-white/15 p-4 rounded-xl text-white flex-shrink-0">
-              <Scissors size={28} />
+        <div className="bg-gradient-to-r from-primary to-primary-dark rounded-t-none sm:rounded-t-xl px-4 sm:px-10 py-5 sm:py-8">
+          <div className="flex items-center gap-3 sm:gap-4 pr-10 sm:pr-14">
+            <div className="bg-white/15 p-2.5 sm:p-4 rounded-xl text-white flex-shrink-0">
+              <Scissors size={20} className="sm:hidden" /><Scissors size={28} className="hidden sm:block" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-2xl font-black text-white tracking-tighter uppercase truncate">{td(order.orderType)}</h2>
-              <span className={`inline-block mt-1 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border-2 ${getAdminStatusColor(order)}`}>
+              <h2 className="text-lg sm:text-2xl font-black text-white tracking-tighter uppercase truncate">{td(order.orderType)}</h2>
+              <span className={`inline-block mt-1 px-3 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 ${getAdminStatusColor(order)}`}>
                 {getAdminStatusLabel(order, language)}
               </span>
             </div>
           </div>
 
           {/* Meta */}
-          <div className="flex flex-wrap gap-6 mt-6 text-white/90 font-medium text-sm">
+          <div className="flex flex-wrap gap-3 sm:gap-6 mt-4 sm:mt-6 text-white/90 font-medium text-xs sm:text-sm">
             {customerName && (
-              <span className="flex items-center gap-2">
-                <User size={15} className="text-white/70" /> {tn(customerName)}
+              <span className="flex items-center gap-1.5 sm:gap-2">
+                <User size={13} className="text-white/70 sm:hidden" /><User size={15} className="text-white/70 hidden sm:block" /> {tn(customerName)}
               </span>
             )}
             {order.orderCategory && (
-              <span className="flex items-center gap-2">
-                <Tag size={15} className="text-white/70" /> {td(order.orderCategory)}
+              <span className="flex items-center gap-1.5 sm:gap-2">
+                <Tag size={13} className="text-white/70 sm:hidden" /><Tag size={15} className="text-white/70 hidden sm:block" /> {td(order.orderCategory)}
               </span>
             )}
-            <span className="flex items-center gap-2">
-              <Calendar size={15} className="text-white/70" />
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <Calendar size={13} className="text-white/70 sm:hidden" /><Calendar size={15} className="text-white/70 hidden sm:block" />
               {order.createdAt ? new Date(order.createdAt).toLocaleString() : t('orderDetails.na')}
             </span>
           </div>
         </div>
 
-        <div className="p-6 sm:p-10">
+        <div className="p-4 sm:p-10">
 
         {/* Live Worker Status — what's actually happening on this order right
             now (separate from the Admin-facing status badge above, which
             only shows the Admin's own side of the workflow). */}
         {order.orderStatus === 'Active' && (
-          <div className="flex flex-wrap items-center gap-3 mb-8 p-4 rounded-xl bg-indigo-50 border-2 border-indigo-100">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{t('orderDetails.liveStatus')}</span>
-            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border-2 ${getWorkerStatusColor(order)}`}>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 sm:mb-8 p-3 sm:p-4 rounded-xl bg-indigo-50 border-2 border-indigo-100">
+            <span className="text-[9px] sm:text-[10px] font-black text-indigo-400 uppercase tracking-widest">{t('orderDetails.liveStatus')}</span>
+            <span className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 ${getWorkerStatusColor(order)}`}>
               {order.assignedWorkerName ? `${order.assignedWorkerName} — ` : ''}{getWorkerStatusLabel(order, language)}
             </span>
             {getWorkerStatus(order) === 'Blocked' && order.workerBlockReason && (
-              <span className="flex items-center gap-1.5 text-xs font-bold text-red-600">
+              <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-red-600">
                 <OctagonAlert size={13} /> {order.workerBlockReason}
               </span>
             )}
             {order.adminGuidance && (
-              <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+              <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-amber-600">
                 <MessageSquareWarning size={13} /> {t('orderDetails.guidance')} {language === 'ur' ? (order.adminGuidanceUrdu || order.adminGuidance) : order.adminGuidance}
               </span>
             )}
@@ -157,10 +157,12 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
             const visibleFields = showAllStyling ? stylingFields : stylingFields.slice(0, 3);
             return (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {visibleFields.map(f => (
-                    <Row key={f.label} label={f.label} value={f.value} naLabel={t('orderDetails.na')} />
-                  ))}
+                <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                  <div className="grid grid-cols-[repeat(3,minmax(108px,1fr))] gap-2 sm:gap-3">
+                    {visibleFields.map(f => (
+                      <Row key={f.label} label={f.label} value={f.value} naLabel={t('orderDetails.na')} />
+                    ))}
+                  </div>
                 </div>
                 {stylingFields.length > 3 && (
                   <button
@@ -182,11 +184,13 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
             <ClipboardList size={14} /> {t('orderDetails.embroideryReference')}
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Row label={t('orderDetails.embroidery')}       value={td(order.embroidery)} naLabel={t('orderDetails.na')} />
-            <Row label={t('orderDetails.embroideryStyle')} value={td(order.style)} naLabel={t('orderDetails.na')} />      {/* ✅ correct field name */}
-            <Row label={t('orderDetails.bookNumber')}      value={order.bookNumber} naLabel={t('orderDetails.na')} />
-            <Row label={t('orderDetails.designNumber')}    value={order.designNumber} naLabel={t('orderDetails.na')} />
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="grid grid-cols-[repeat(3,minmax(108px,1fr))] gap-2 sm:gap-3">
+              <Row label={t('orderDetails.embroidery')}       value={td(order.embroidery)} naLabel={t('orderDetails.na')} />
+              <Row label={t('orderDetails.embroideryStyle')} value={td(order.style)} naLabel={t('orderDetails.na')} />      {/* ✅ correct field name */}
+              <Row label={t('orderDetails.bookNumber')}      value={order.bookNumber} naLabel={t('orderDetails.na')} />
+              <Row label={t('orderDetails.designNumber')}    value={order.designNumber} naLabel={t('orderDetails.na')} />
+            </div>
           </div>
         </div>
 
@@ -201,10 +205,10 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
                 <Wrapper
                   type={linkedDesign ? 'button' : undefined}
                   onClick={linkedDesign ? () => setViewingDesign(linkedDesign) : undefined}
-                  className={`w-full flex items-center gap-4 p-4 bg-primary/5 border-2 border-primary/20 rounded-xl text-left ${linkedDesign ? 'hover:bg-primary/10 hover:border-primary/30 transition-colors cursor-pointer' : ''}`}
+                  className={`w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-primary/5 border-2 border-primary/20 rounded-xl text-left ${linkedDesign ? 'hover:bg-primary/10 hover:border-primary/30 transition-colors cursor-pointer' : ''}`}
                 >
                   <div className="relative flex-shrink-0">
-                    <DesignThumb src={order.selectedDesignImage} alt={selectedDesignDisplayName || 'Design'} className="w-16 h-16 rounded-xl object-cover" iconSize={20} />
+                    <DesignThumb src={order.selectedDesignImage} alt={selectedDesignDisplayName || 'Design'} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover" iconSize={20} />
                     {extraCount > 0 && (
                       <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-black/60 text-white">
                         +{extraCount}
@@ -255,13 +259,13 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
                   const meta = HISTORY_META[entry.type] || HISTORY_META.status_change;
                   const Icon = meta.icon;
                   return (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${meta.tint}`}>
-                        <Icon size={14} />
+                    <div key={i} className="flex items-start gap-2.5 sm:gap-3">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${meta.tint}`}>
+                        <Icon size={13} className="sm:hidden" /><Icon size={14} className="hidden sm:block" />
                       </div>
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="font-bold text-slate-700 text-sm leading-snug">{tdLog(entry.description)}</p>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
+                        <p className="font-bold text-slate-700 text-xs sm:text-sm leading-snug">{tdLog(entry.description)}</p>
+                        <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
                           <Clock size={10} /> {entry.at ? new Date(entry.at).toLocaleString() : t('orderDetails.na')}
                         </p>
                       </div>
@@ -273,22 +277,24 @@ const OrderDetailsModal = ({ order, customerName, onClose, onEdit, onDelete, del
           );
         })()}
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-8">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-8">
           {onEdit && order.orderStatus !== 'Completed' && order.orderStatus !== 'Received By Customer' && (
             <button
               onClick={() => onEdit(order)}
-              className="flex-1 flex items-center justify-center gap-3 primary-btn py-4 rounded-xl shadow-lg shadow-primary/20"
+              className="flex-1 flex items-center justify-center gap-2 sm:gap-3 primary-btn py-3 sm:py-4 text-sm rounded-xl shadow-lg shadow-primary/20"
             >
-              <Pencil size={18} /> {t('orderDetails.editOrder')}
+              <Pencil size={16} className="sm:hidden" /><Pencil size={18} className="hidden sm:block" /> {t('orderDetails.editOrder')}
             </button>
           )}
           {onDelete && (
             <button
               onClick={() => onDelete(order)}
               disabled={deleting}
-              className="flex-1 flex items-center justify-center gap-3 bg-red-50 text-red-500 font-bold py-4 rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 sm:gap-3 bg-red-50 text-red-500 font-bold py-3 sm:py-4 text-sm rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
             >
-              {deleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />} {t('orderDetails.deleteOrder')}
+              {deleting ? <Loader2 size={16} className="animate-spin sm:hidden" /> : <Trash2 size={16} className="sm:hidden" />}
+              {deleting ? <Loader2 size={18} className="hidden sm:block animate-spin" /> : <Trash2 size={18} className="hidden sm:block" />}
+              {t('orderDetails.deleteOrder')}
             </button>
           )}
         </div>

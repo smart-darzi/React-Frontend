@@ -308,8 +308,10 @@ const CustomerPortal = () => {
   );
 
   return (
-    <div className="min-h-screen fabric-bg p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen fabric-bg flex flex-col">
+      <div className="p-4 md:p-8 flex-1 flex flex-col">
+      <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+        <div className="space-y-8 flex-1">
 
         {/* ── Header / Profile ── */}
         <motion.header
@@ -320,17 +322,18 @@ const CustomerPortal = () => {
           style={{ background: 'linear-gradient(155deg, #10707F 0%, #0E606E 50%, #0A4A55 100%)', boxShadow: '0 20px 40px -20px rgba(10,74,85,0.5)' }}
         >
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 10px)' }} />
-          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5 p-6 md:p-7">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                <User size={22} />
+          <div className="relative flex flex-wrap items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 md:p-7">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <User size={18} className="sm:hidden" />
+                <User size={22} className="hidden sm:block" />
               </div>
               <div className="min-w-0">
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('Customer Portal', 'کسٹمر پورٹل')}</p>
-                <h1 className="font-display text-xl font-extrabold text-white truncate">
+                <p className="text-white/60 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5">{t('Customer Portal', 'کسٹمر پورٹل')}</p>
+                <h1 className="font-display text-lg sm:text-xl font-extrabold text-white truncate">
                   {t(GREETINGS[getGreetingKey()].en, GREETINGS[getGreetingKey()].ur)}, {tn(currentCustomer?.name?.split(' ')[0]) || 'there'}
                 </h1>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-white/70 text-xs font-medium">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-white/70 text-[11px] sm:text-xs font-medium">
                   {currentCustomer?.phoneNumber && (
                     <span className="flex items-center gap-1"><Phone size={12} /> {currentCustomer.phoneNumber}</span>
                   )}
@@ -349,7 +352,7 @@ const CustomerPortal = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
               {/* ✅ Language toggle — mirrors the Worker Portal's toggle so
                   customers get the same single-language control instead of
                   every bilingual string being shown at once. */}
@@ -357,21 +360,21 @@ const CustomerPortal = () => {
                 <button
                   type="button"
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
                 >
                   English
                 </button>
                 <button
                   type="button"
                   onClick={() => setLanguage('ur')}
-                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
+                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/60 hover:text-white/90'}`}
                 >
                   اردو
                 </button>
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/15 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-all self-start md:self-auto flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-white/10 border border-white/15 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-white/20 transition-all flex-shrink-0"
               >
                 <LogOut size={16} /> {t('Logout', 'لاگ آؤٹ')}
               </button>
@@ -416,7 +419,7 @@ const CustomerPortal = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: i * 0.04, ease: 'easeOut' }}
                       onClick={() => setViewingDesign(d)}
-                      className="relative flex-shrink-0 w-44 glass-card rounded-2xl overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-0.5 transition-all p-4 flex flex-col items-center text-center"
+                      className="relative flex-shrink-0 w-48 glass-card rounded-2xl overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-0.5 transition-all p-4 flex flex-col items-center text-center"
                     >
                       <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0">
                         <div className="w-full h-full rounded-2xl overflow-hidden bg-white border border-slate-100">
@@ -427,12 +430,10 @@ const CustomerPortal = () => {
                         </span>
                       </div>
                       <div className="w-full mt-3 space-y-1">
-                        <div className="flex items-center justify-center gap-2">
-                          <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase truncate">{designName(d)}</h3>
-                          {d.price !== null && d.price !== undefined && (
-                            <span className="text-primary font-black text-xs whitespace-nowrap">Rs {d.price}</span>
-                          )}
-                        </div>
+                        <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase leading-snug break-words">{designName(d)}</h3>
+                        {d.price !== null && d.price !== undefined && (
+                          <span className="block text-primary font-black text-xs">Rs {d.price}</span>
+                        )}
                         <div className="flex justify-center">
                           <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600">
                             {td(d.category)}
@@ -496,7 +497,8 @@ const CustomerPortal = () => {
                       <h3 className="text-lg font-bold text-slate-400">{t('No matching designs', 'کوئی ملتا جلتا ڈیزائن نہیں')}</h3>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+                    <div className="grid grid-cols-3 gap-3" style={{ minWidth: '540px' }}>
                       {pagedCatalogDesigns.map((d, i) => (
                         <motion.button
                           key={d._id}
@@ -522,16 +524,14 @@ const CustomerPortal = () => {
                             )}
                           </div>
                           <div className="w-full mt-3 space-y-1">
-                            <div className="flex items-center justify-center gap-2">
-                              <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase truncate">
-                                {language === 'ur' && d.nameUrdu
-                                  ? d.nameUrdu
-                                  : <HighlightedName name={d.name} term={designSearch} />}
-                              </h3>
-                              {d.price !== null && d.price !== undefined && (
-                                <span className="text-primary font-black text-xs whitespace-nowrap">Rs {d.price}</span>
-                              )}
-                            </div>
+                            <h3 dir={language === 'ur' && d.nameUrdu ? 'rtl' : 'ltr'} className="text-sm font-black text-slate-800 uppercase leading-snug break-words">
+                              {language === 'ur' && d.nameUrdu
+                                ? d.nameUrdu
+                                : <HighlightedName name={d.name} term={designSearch} />}
+                            </h3>
+                            {d.price !== null && d.price !== undefined && (
+                              <span className="block text-primary font-black text-xs">Rs {d.price}</span>
+                            )}
                             <div className="flex justify-center">
                               <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600">
                                 {td(d.category)}
@@ -545,6 +545,7 @@ const CustomerPortal = () => {
                           </div>
                         </motion.button>
                       ))}
+                    </div>
                     </div>
                   )}
                   <PaginationControls
@@ -566,15 +567,15 @@ const CustomerPortal = () => {
             <SectionHeading eyebrow={t(`${myOrders.length} order${myOrders.length === 1 ? '' : 's'}`, `${myOrders.length} آرڈرز`)}>{t('My Orders', 'میرے آرڈرز')}</SectionHeading>
 
             {myOrders.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 sm:p-4 mb-5">
                 <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-slate-50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                  <div className="flex items-center justify-center px-3.5 text-slate-400">
-                    <Search size={16} />
+                  <div className="flex items-center justify-center px-3 text-slate-400">
+                    <Search size={15} />
                   </div>
                   <input
                     type="text"
                     placeholder={t("Type your order's name (e.g. 'Shalwar Qamees')...", "اپنے آرڈر کا نام لکھیں (جیسے 'شلوار قمیض')...")}
-                    className="flex-1 pr-4 py-3 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-sm"
+                    className="flex-1 pr-4 py-2 sm:py-2.5 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-sm"
                     value={orderNameSearch}
                     onChange={e => setOrderNameSearch(e.target.value)}
                   />
@@ -604,8 +605,11 @@ const CustomerPortal = () => {
           </div>
         )}
 
-        <PortalFooter />
+        </div>
+
+        </div>
       </div>
+      <PortalFooter />
 
       {viewingDesign && (
         <DesignDetailModal
