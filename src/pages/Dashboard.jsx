@@ -130,27 +130,35 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-10">
-      {/* Title and the New Order / New Customer buttons stay in one
-          horizontal row at every width, and the buttons always keep their
-          label (icon + text) — just at a smaller size/padding on phones —
-          instead of collapsing to icon-only, which looked cut off/unclear. */}
+      {/* Title and the add-order / add-customer actions stay in one
+          horizontal row at every width. On phone/tablet the actions stay
+          icon-only (no room for labels there). From lg (laptop) upward
+          they widen back out into the original labelled buttons — filled
+          "New Order" vs. outline "New Customer" — so they stay easy to
+          tell apart with or without the text. */}
       <motion.header {...fadeUp(0)} className="flex flex-row items-center justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-lg min-[400px]:text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 truncate">{t('dashboard.title')}</h1>
           <p className="hidden sm:block text-slate-500 mt-1.5 font-medium truncate">{t('dashboard.tailoringManagement')}</p>
         </div>
-        <div className="flex flex-row items-center gap-1.5 sm:gap-4 flex-shrink-0">
+        <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => navigate('/add-order')}
-            className="primary-btn flex items-center justify-center gap-1 sm:gap-3 px-2.5 py-2 sm:px-6 sm:py-3.5 rounded-xl text-[11px] sm:text-base shadow-sm whitespace-nowrap flex-shrink-0"
+            aria-label={t('dashboard.newOrder')}
+            title={t('dashboard.newOrder')}
+            className="primary-btn flex items-center justify-center gap-2 w-9 h-9 sm:w-12 sm:h-12 md:w-auto md:h-auto md:px-6 md:py-3 rounded-xl shadow-sm flex-shrink-0"
           >
-            <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> {t('dashboard.newOrder')}
+            <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="hidden md:inline text-sm font-bold whitespace-nowrap">{t('dashboard.newOrder')}</span>
           </button>
           <button
             onClick={() => navigate('/add-customer')}
-            className="primary-btn flex items-center justify-center gap-1 sm:gap-3 px-2.5 py-2 sm:px-6 sm:py-3.5 rounded-xl text-[11px] sm:text-base shadow-sm whitespace-nowrap flex-shrink-0"
+            aria-label={t('dashboard.newCustomer')}
+            title={t('dashboard.newCustomer')}
+            className="flex items-center justify-center gap-2 w-9 h-9 sm:w-12 sm:h-12 md:w-auto md:h-auto md:px-6 md:py-3 rounded-xl border-2 border-primary/25 bg-white text-primary shadow-sm hover:bg-primary/5 transition-colors flex-shrink-0"
           >
-            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> {t('dashboard.newCustomer')}
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="hidden md:inline text-sm font-bold whitespace-nowrap">{t('dashboard.newCustomer')}</span>
           </button>
         </div>
       </motion.header>

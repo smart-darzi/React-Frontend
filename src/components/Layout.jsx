@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -14,22 +14,39 @@ import {
   X,
   ChevronDown,
   Save,
-  Check
+  Check,
+  Languages
 } from 'lucide-react';
 import { useLocalState } from '../context/useLocalState';
 import { useLanguage } from '../context/LanguageContext';
 import NewWorkerAlert from './NewWorkerAlert';
 import PortalFooter from './PortalFooter';
 
+// `match` lists every path *prefix* that should light this item up in the
+// sidebar — not just its own `to`. Detail pages live at singular routes
+// (e.g. /customer/:id, /order/:id, /worker/:id) that sit outside their
+// list page's own path, so without this the sidebar item goes dark the
+// moment you open a customer/order/worker's profile even though you're
+// still clearly "in" that section.
 const navItems = [
   { icon: LayoutDashboard, labelEn: 'Dashboard', labelUr: 'ڈیش بورڈ', to: '/', end: true },
   { icon: UserPlus, labelEn: 'Add Customer', labelUr: 'کسٹمر شامل کریں', to: '/add-customer' },
-  { icon: Users, labelEn: 'Customers', labelUr: 'کسٹمرز', to: '/view-customers' },
-  { icon: ClipboardList, labelEn: 'Orders', labelUr: 'آرڈرز', to: '/view-orders' },
-  { icon: HardHat, labelEn: 'Workers', labelUr: 'ورکرز', to: '/workers' },
+  { icon: Users, labelEn: 'Customers', labelUr: 'کسٹمرز', to: '/view-customers', match: ['/view-customers', '/customer/'] },
+  { icon: ClipboardList, labelEn: 'Orders', labelUr: 'آرڈرز', to: '/view-orders', match: ['/view-orders', '/order/'] },
+  { icon: HardHat, labelEn: 'Workers', labelUr: 'ورکرز', to: '/workers', match: ['/workers', '/worker/'] },
   { icon: Palette, labelEn: 'Designs', labelUr: 'ڈیزائنز', to: '/designs' },
   { icon: Settings, labelEn: 'Settings', labelUr: 'ترتیبات', to: '/settings' },
 ];
+
+// Is this nav item "active" for the given pathname? Uses each item's
+// `match` prefixes when present (falls back to its own `to`), and does an
+// exact match when `end` is set (only Dashboard, so "/" doesn't light up
+// every other route).
+const isNavItemActive = (item, pathname) => {
+  if (item.end) return pathname === item.to;
+  const prefixes = item.match || [item.to];
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p));
+};
 
 // ✅ Below the lg breakpoint the sidebar becomes an off-canvas drawer —
 // fixed + translated off-screen by default, slid in over a dim overlay
@@ -42,6 +59,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
   const { logout } = useLocalState();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -83,28 +101,26 @@ const Sidebar = ({ mobileOpen, onClose }) => {
           </button>
         </div>
         <nav className="flex-1 p-6 mt-4 space-y-2 overflow-y-auto custom-scrollbar min-h-0">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.labelEn}
-              to={item.to}
-              end={item.end}
-              onClick={onClose}
-              className={({ isActive }) => `
-                relative flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-300 group
-                ${isActive
-                  ? 'bg-white text-primary font-bold'
-                  : 'hover:bg-white/[0.06] text-white/70 hover:text-white'}
-              `}
-              style={({ isActive }) => isActive ? { boxShadow: '0 10px 24px -8px rgba(0,0,0,0.35)' } : undefined}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={22} className={isActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'} />
-                  <span className="text-sm tracking-wide leading-relaxed">{t(item.labelEn, item.labelUr)}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            const isActive = isNavItemActive(item, location.pathname);
+            return (
+              <Link
+                key={item.labelEn}
+                to={item.to}
+                onClick={onClose}
+                className={`
+                  relative flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-300 group
+                  ${isActive
+                    ? 'bg-white text-primary font-bold'
+                    : 'hover:bg-white/[0.06] text-white/70 hover:text-white'}
+                `}
+                style={isActive ? { boxShadow: '0 10px 24px -8px rgba(0,0,0,0.35)' } : undefined}
+              >
+                <item.icon size={22} className={isActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'} />
+                <span className="text-sm tracking-wide leading-relaxed">{t(item.labelEn, item.labelUr)}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="p-6 border-t border-white/10 flex-shrink-0">
@@ -125,10 +141,7 @@ const Sidebar = ({ mobileOpen, onClose }) => {
 // sidebar can be scrolled past on smaller viewports) and who's logged in,
 // mirroring the header pattern already used on the Customer/Worker portals.
 const Topbar = ({ onMenuClick }) => {
-  const location = useLocation();
   const { t, language, setLanguage } = useLanguage();
-  const active = navItems.find(item => (item.end ? location.pathname === item.to : location.pathname.startsWith(item.to))) || navItems[0];
-  const today = new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { day: 'numeric', month: 'short' });
 
   return (
     <div className="sticky top-0 z-30 px-2 sm:px-6 lg:px-10 py-2 sm:py-4 lg:py-5 flex items-center justify-between gap-1 sm:gap-6" style={{ background: '#0E606E', boxShadow: '0 1px 0 rgba(15,23,42,0.03), 0 8px 24px -16px rgba(15,23,42,0.35)' }}>
@@ -140,33 +153,41 @@ const Topbar = ({ onMenuClick }) => {
         >
           <Menu size={19} className="sm:w-[22px] sm:h-[22px]" strokeWidth={2.25} />
         </button>
+        {/* App identity only — this used to show the current page's name
+            (e.g. "Dashboard"), but the sidebar/URL already make that clear,
+            so the header now always just names the app itself, on every
+            screen size (phone through laptop). */}
         <span className="flex w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg sm:rounded-xl bg-white/15 text-white items-center justify-center flex-shrink-0 backdrop-blur-sm border border-white/10">
-          <active.icon size={13} className="sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" />
+          <Scissors size={13} className="sm:w-4 sm:h-4 md:w-[18px] md:h-[18px]" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="block text-[6px] min-[360px]:text-[7px] sm:text-[9px] md:text-[10px] font-black text-white/60 uppercase tracking-widest truncate">{t('Smart Master Admin', 'اسمارٹ ماسٹر ایڈمن')}</p>
-          <h2 className="text-[11px] sm:text-base md:text-lg font-black text-white tracking-tight truncate">{t(active.labelEn, active.labelUr)}</h2>
+          <p className="hidden lg:block text-[10px] font-black text-white/60 uppercase tracking-widest truncate">{t('Smart Master Admin', 'اسمارٹ ماسٹر ایڈمن')}</p>
+          <h2 className="text-[11px] sm:text-base md:text-lg font-black text-white tracking-tight truncate">{t('Smart Master', 'اسمارٹ ماسٹر')}</h2>
         </div>
       </div>
-      <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
-        <span className="text-[9px] sm:text-xs font-bold text-white/90 whitespace-nowrap flex-shrink-0">{today}</span>
-        {/* Language toggle — flips every bilingual string across the app
-            to render only its English or only its Urdu half (see
-            LanguageContext). Numbers/prices are unaffected either way. */}
-        <div className="flex items-center bg-white/10 border border-white/15 rounded-lg sm:rounded-xl p-0.5 gap-0.5 backdrop-blur-sm flex-shrink-0">
-          <button
-            onClick={() => setLanguage('en')}
-            className={`px-1 sm:px-2.5 md:px-3 py-0.5 sm:py-1.5 rounded-md sm:rounded-xl text-[7px] sm:text-xs font-black transition-all whitespace-nowrap ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'}`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setLanguage('ur')}
-            className={`px-1 sm:px-2.5 md:px-3 py-0.5 sm:py-1.5 rounded-md sm:rounded-xl text-[7px] sm:text-xs font-black transition-all whitespace-nowrap ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-white/70 hover:text-white'}`}
-          >
-            اردو
-          </button>
-        </div>
+      <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
+        {/* Today's date — dropped on phones to keep the bar uncluttered
+            next to the language toggle and avatar; still shown from sm
+            upward (tablet/laptop) exactly as before. */}
+        <span className="hidden sm:inline-flex text-[9px] sm:text-xs font-bold text-white/90 whitespace-nowrap flex-shrink-0">
+          {new Date().toLocaleDateString(language === 'ur' ? 'ur-PK' : 'en-US', { day: 'numeric', month: 'short' })}
+        </span>
+        {/* Language toggle — now a single button (was two side-by-side
+            English/اردو buttons). One tap flips every bilingual string
+            across the app between its English and Urdu half (see
+            LanguageContext); numbers/prices are unaffected either way.
+            The label always shows the CURRENT language. */}
+        <button
+          onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
+          aria-label={t('Toggle language', 'زبان تبدیل کریں')}
+          title={t('Toggle language', 'زبان تبدیل کریں')}
+          className="flex items-center gap-1 sm:gap-1.5 bg-white/10 border border-white/15 rounded-lg sm:rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 backdrop-blur-sm flex-shrink-0 hover:bg-white/20 active:scale-95 transition-all"
+        >
+          <Languages size={12} className="sm:w-[15px] sm:h-[15px] text-white/90 flex-shrink-0" />
+          <span className="text-[8px] sm:text-xs font-black text-white whitespace-nowrap">
+            {language === 'en' ? 'English' : 'اردو'}
+          </span>
+        </button>
         <AdminMenu />
       </div>
     </div>

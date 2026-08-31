@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useLocalState } from '../context/useLocalState';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
@@ -107,15 +107,11 @@ const WorkerRegister = () => {
       badge={t('Worker Sign Up', 'ورکر سائن اپ')}
       heading={t("Let's get you set up", 'آئیے آپ کا اکاؤنٹ بناتے ہیں')}
       subtitle={t(
-        'Fill out the form and your request will be sent to the admin for approval.',
-        'فارم پُر کریں، آپ کی درخواست ایڈمن کو بھیج دی جائے گی۔'
+        'Fill the form to request access.',
+        'رسائی کے لیے فارم پُر کریں۔'
       )}
-      footer={
-        <p className="text-slate-400 text-sm font-medium">
-          {t('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟')}{' '}
-          <Link to="/login" className="font-black hover:underline" style={{ color: ACCENT }}>{t('Login', 'لاگ ان')}</Link>
-        </p>
-      }
+      boxHeight="lg:h-[620px]"
+      scrollable
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <AuthBoxField
@@ -211,6 +207,14 @@ const WorkerRegister = () => {
           )}
         </button>
       </form>
+
+      {/* Was missing entirely — no way back to Login from this page. */}
+      <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-sm">
+        <span className="text-slate-400 font-medium">{t('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟')}</span>
+        <Link to="/login" className="font-bold hover:underline" style={{ color: ACCENT }}>
+          {t('Login', 'لاگ ان')}
+        </Link>
+      </div>
     </AuthCardShell>
   );
 };

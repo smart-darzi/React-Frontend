@@ -20,12 +20,24 @@ const NewWorkerAlert = () => {
   const { t, td, tn, language } = useLanguage();
   const navigate = useNavigate();
   const [approvingId, setApprovingId] = useState(null);
+  // Both lists only show the first 3 alerts at once — if several
+  // workers/customers register around the same time, stacking every single
+  // one on top of the page gets overwhelming fast. A "See N more" toggle
+  // reveals the rest on demand, independently for each list.
+  const [showAllWorkers, setShowAllWorkers] = useState(false);
+  const [showAllCustomers, setShowAllCustomers] = useState(false);
 
+  const VISIBLE_LIMIT = 3;
   const workerAlerts = pendingWorkerAlerts || [];
   const customerAlerts = pendingCustomerAlerts || [];
   const hasAlerts = workerAlerts.length > 0 || customerAlerts.length > 0;
 
   if (!hasAlerts) return null;
+
+  const visibleWorkerAlerts = showAllWorkers ? workerAlerts : workerAlerts.slice(0, VISIBLE_LIMIT);
+  const visibleCustomerAlerts = showAllCustomers ? customerAlerts : customerAlerts.slice(0, VISIBLE_LIMIT);
+  const hiddenWorkerCount = workerAlerts.length - visibleWorkerAlerts.length;
+  const hiddenCustomerCount = customerAlerts.length - visibleCustomerAlerts.length;
 
   const handleApprove = async (worker) => {
     setApprovingId(worker._id);
@@ -59,22 +71,22 @@ const NewWorkerAlert = () => {
   };
 
   return (
-    <div className="fixed top-4 left-4 right-4 sm:top-6 sm:left-auto sm:right-6 z-[100] flex flex-col gap-3 sm:w-full sm:max-w-sm">
+    <div className="fixed top-3 right-3 sm:top-6 sm:right-6 z-[100] flex flex-col gap-2 sm:gap-3 w-[86vw] max-w-[300px] sm:w-full sm:max-w-sm">
       <AnimatePresence>
-        {workerAlerts.map(worker => (
+        {visibleWorkerAlerts.map(worker => (
           <motion.div
             key={worker._id}
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 60, scale: 0.9 }}
-            className="glass-card bg-white rounded-xl shadow-2xl border border-slate-100 p-6 space-y-4"
+            className="glass-card bg-white rounded-xl shadow-2xl border border-slate-100 p-4 sm:p-6 space-y-3 sm:space-y-4"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                <HardHat size={22} />
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+                <HardHat size={18} className="sm:w-[22px] sm:h-[22px]" />
               </div>
               <div className="flex-1">
-                <p className="font-black text-slate-800 uppercase tracking-tight text-sm">{t('New worker request', 'نئی ورکر درخواست')}</p>
+                <p className="font-black text-slate-800 uppercase tracking-tight text-xs sm:text-sm">{t('New worker request', 'نئی ورکر درخواست')}</p>
                 <p className="text-slate-500 text-xs font-medium mt-1">
                   {t('Waiting for portal access - check the details below.', 'پورٹل رسائی کا انتظار ہے - نیچے تفصیل دیکھیں۔')}
                 </p>
@@ -90,7 +102,7 @@ const NewWorkerAlert = () => {
 
             {/* Worker's submitted details — everything the admin needs to
                 decide, right here in the popup. */}
-            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <div className="bg-slate-50 rounded-xl p-3 sm:p-4 space-y-1.5 sm:space-y-2">
               <p className="font-black text-slate-800 text-base">{language === 'ur' ? tn(worker.name) : worker.name}</p>
               <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                 <Briefcase size={13} className="text-primary flex-shrink-0" /> {td(worker.role)}
@@ -128,20 +140,33 @@ const NewWorkerAlert = () => {
           </motion.div>
         ))}
 
-        {customerAlerts.map(customer => (
+        {hiddenWorkerCount > 0 && (
+          <motion.button
+            key="see-more-workers"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowAllWorkers(true)}
+            className="glass-card bg-white rounded-xl shadow-lg border border-slate-100 py-3 text-center text-xs font-black text-primary hover:bg-primary/5 transition-colors"
+          >
+            {language === 'ur' ? `${hiddenWorkerCount} مزید دیکھیں` : `See ${hiddenWorkerCount} more`}
+          </motion.button>
+        )}
+
+        {visibleCustomerAlerts.map(customer => (
           <motion.div
             key={`customer-${customer._id}`}
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 60, scale: 0.9 }}
-            className="glass-card bg-white rounded-xl shadow-2xl border border-slate-100 p-6 space-y-4"
+            className="glass-card bg-white rounded-xl shadow-2xl border border-slate-100 p-4 sm:p-6 space-y-3 sm:space-y-4"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 flex-shrink-0">
-                <UserPlus size={22} />
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 flex-shrink-0">
+                <UserPlus size={18} className="sm:w-[22px] sm:h-[22px]" />
               </div>
               <div className="flex-1">
-                <p className="font-black text-slate-800 uppercase tracking-tight text-sm">{t('New customer account', 'نیا کسٹمر اکاؤنٹ')}</p>
+                <p className="font-black text-slate-800 uppercase tracking-tight text-xs sm:text-sm">{t('New customer account', 'نیا کسٹمر اکاؤنٹ')}</p>
                 <p className="text-slate-500 text-xs font-medium mt-1">
                   {t('Customer created a portal account - details are below.', 'کسٹمر نے پورٹل اکاؤنٹ بنایا ہے - تفصیل نیچے موجود ہے۔')}
                 </p>
@@ -155,7 +180,7 @@ const NewWorkerAlert = () => {
               </button>
             </div>
 
-            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <div className="bg-slate-50 rounded-xl p-3 sm:p-4 space-y-1.5 sm:space-y-2">
               <p className="font-black text-slate-800 text-base">{language === 'ur' ? tn(customer.name) : customer.name}</p>
               <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                 <Hash size={13} className="text-emerald-600 flex-shrink-0" />
@@ -200,6 +225,19 @@ const NewWorkerAlert = () => {
             </div>
           </motion.div>
         ))}
+
+        {hiddenCustomerCount > 0 && (
+          <motion.button
+            key="see-more-customers"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowAllCustomers(true)}
+            className="glass-card bg-white rounded-xl shadow-lg border border-slate-100 py-3 text-center text-xs font-black text-emerald-600 hover:bg-emerald-50 transition-colors"
+          >
+            {language === 'ur' ? `${hiddenCustomerCount} مزید دیکھیں` : `See ${hiddenCustomerCount} more`}
+          </motion.button>
+        )}
       </AnimatePresence>
     </div>
   );

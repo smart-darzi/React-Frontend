@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useLocalState } from '../context/useLocalState';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, ShieldAlert, ArrowLeft, User, Phone as PhoneIcon, MapPin, Mail, Lock } from 'lucide-react';
+import { ArrowRight, ShieldAlert, User, Phone as PhoneIcon, MapPin, Mail, Lock } from 'lucide-react';
 import { cleanPhoneInput, validatePhone, validateEmail, validatePassword } from '../utils/validators';
 import AuthCardShell from '../components/AuthCardShell';
 import AuthBoxField from '../components/AuthBoxField';
@@ -76,17 +76,11 @@ const CustomerRegister = () => {
       badge={t('Customer Sign Up', 'کسٹمر سائن اپ')}
       heading={t("Let's get started", 'چلیں شروع کرتے ہیں')}
       subtitle={t(
-        'Create an account and view your orders, tracking, and details anytime.',
-        'اکاؤنٹ بنائیں اور اپنے آرڈرز، ٹریکنگ اور تفصیلات کبھی بھی دیکھیں۔'
+        'Sign up to view your orders anytime.',
+        'اپنے آرڈرز دیکھنے کے لیے اکاؤنٹ بنائیں۔'
       )}
-      footer={
-        <p className="text-slate-400 text-sm font-medium">
-          {t('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟')}{' '}
-          <Link to="/login" className="font-black hover:underline inline-flex items-center gap-1" style={{ color: ACCENT }}>
-            <ArrowLeft size={12} /> {t('Login', 'لاگ ان')}
-          </Link>
-        </p>
-      }
+      boxHeight="lg:h-[620px]"
+      scrollable
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <AuthBoxField
@@ -193,6 +187,14 @@ const CustomerRegister = () => {
           )}
         </button>
       </form>
+
+      {/* Was missing entirely — no way back to Login from this page. */}
+      <div className="pt-5 mt-5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-sm">
+        <span className="text-slate-400 font-medium">{t('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟')}</span>
+        <Link to="/login" className="font-bold hover:underline" style={{ color: ACCENT }}>
+          {t('Login', 'لاگ ان')}
+        </Link>
+      </div>
     </AuthCardShell>
   );
 };

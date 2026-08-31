@@ -319,8 +319,18 @@ const Designs = () => {
         </div>
         {!showForm && (
           <div className="flex-shrink-0">
-            <button onClick={openAdd} className="primary-btn px-3 py-2 text-xs sm:px-8 sm:py-4 sm:text-base rounded-xl flex items-center justify-center gap-1.5 sm:gap-3 shadow-xl shadow-primary/20 whitespace-nowrap">
-              <Plus size={14} className="sm:hidden" /><Plus size={22} className="hidden sm:block" /> {t('Add Design', 'نیا ڈیزائن')}
+            {/* Icon-only on phone (matches the Dashboard's add-order/
+                add-customer buttons); from md (tablet/laptop) upward it
+                widens into a labelled pill reading "New Design" instead
+                of just a bare "+". */}
+            <button
+              onClick={openAdd}
+              aria-label={t('New Design', 'نیا ڈیزائن')}
+              title={t('New Design', 'نیا ڈیزائن')}
+              className="primary-btn flex items-center justify-center gap-2 w-9 h-9 sm:w-12 sm:h-12 md:w-auto md:h-auto md:px-6 md:py-3 rounded-full shadow-xl shadow-primary/20 flex-shrink-0"
+            >
+              <Plus size={16} className="sm:hidden" /><Plus size={22} className="hidden sm:block md:hidden" />
+              <span className="hidden md:inline text-sm font-bold whitespace-nowrap">{t('New Design', 'نیا ڈیزائن')}</span>
             </button>
           </div>
         )}

@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Scissors, Lock, ArrowRight, ShieldAlert, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
+import { Lock, ArrowRight, ShieldAlert, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
 import { authService } from '../api/api';
 import { useLanguage } from '../context/LanguageContext';
 import { validatePassword } from '../utils/validators';
+import AuthSplitCard from '../components/AuthSplitCard';
 
 // Lands here from the link in the reset-password email:
 // /reset-password?token=...&email=...
 // Both are opaque to the user — they just type their new password twice.
+//
+// Single centered card, same as Login and Forgot Password — brand panel
+// and form panel together in one box, language toggle inside it.
 const ResetPassword = () => {
-  const { t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
   const email = searchParams.get('email') || '';
@@ -27,13 +31,13 @@ const ResetPassword = () => {
     setError('');
 
     if (!token || !email) {
-      setError('This reset link is invalid — please request a new one');
+      setError(t('This reset link is invalid — please request a new one', 'یہ ری سیٹ لنک غلط ہے — براہ کرم نیا لنک حاصل کریں'));
       return;
     }
     const passwordError = validatePassword(password);
     if (passwordError) { setError(passwordError); return; }
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('Passwords do not match', 'پاس ورڈ مماثل نہیں ہیں'));
       return;
     }
 
@@ -43,189 +47,130 @@ const ResetPassword = () => {
       setDone(true);
       setTimeout(() => navigate('/login'), 2500);
     } catch (err) {
-      setError(err.response?.data?.error || 'This reset link is invalid or has expired. Please request a new one.');
+      setError(err.response?.data?.error || t('This reset link is invalid or has expired. Please request a new one.', 'یہ ری سیٹ لنک غلط ہے یا میعاد ختم ہو چکی ہے۔ براہ کرم نیا لنک حاصل کریں۔'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col lg:flex-row overflow-y-auto">
-      {/* ── LEFT BRAND PANEL ── */}
-      <div
-        className="flex flex-row lg:flex-col items-center lg:items-stretch justify-start lg:justify-between w-full lg:w-[48%] gap-4 lg:gap-0 p-4 sm:p-5 lg:p-[clamp(1.5rem,4vh,3.5rem)] relative overflow-hidden shrink-0"
-        style={{ background: 'linear-gradient(145deg, #0E606E 0%, #0A4A55 50%, #083840 100%)' }}
-      >
-        <div className="hidden lg:block absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-10"
-             style={{ background: 'radial-gradient(circle, white, transparent)' }} />
-        <div className="hidden lg:block absolute bottom-0 right-0 w-72 h-72 rounded-full opacity-10 translate-x-1/3 translate-y-1/3"
-             style={{ background: 'radial-gradient(circle, white, transparent)' }} />
+    <AuthSplitCard
+      badgeIcon={KeyRound}
+      badge={t('Password Reset', 'پاس ورڈ ری سیٹ')}
+      panelTitle={language === 'ur' ? (
+        <>نیا<br /><span className="text-white/50">پاس ورڈ</span><br />بنائیں</>
+      ) : (
+        <>Create<br /><span className="text-white/50">New</span><br />Password</>
+      )}
+      panelSubtitle={t('Set a new password to log back in.', 'نیا پاس ورڈ سیٹ کریں۔')}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {!done ? (
+            <Link to="/login" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-primary transition-colors">
+              <ArrowLeft size={14} className="sm:w-4 sm:h-4" /> {t('Back to Login', 'لاگ ان پر واپس جائیں')}
+            </Link>
+          ) : <span />}
 
-        {/* ── night-sky illustration: shooting stars up top, scattered
-            dots for stars, and a soft cloud/hill silhouette resting
-            along the bottom edge — same idea as the reference mock,
-            recoloured into the app's teal family instead of blue. ── */}
-        <svg
-          className="hidden lg:block pointer-events-none absolute inset-0 w-full h-full"
-          viewBox="0 0 500 900" preserveAspectRatio="none"
-        >
-          {/* shooting stars */}
-          <g stroke="#EAF6F4" strokeWidth="2.5" strokeLinecap="round" opacity="0.55">
-            <line x1="80" y1="70" x2="140" y2="20" />
-            <line x1="150" y1="120" x2="195" y2="80" />
-            <line x1="330" y1="55" x2="380" y2="10" />
-          </g>
-          <g fill="#EAF6F4">
-            <circle cx="145" cy="18" r="3" opacity="0.9" />
-            <circle cx="382" cy="8" r="3" opacity="0.9" />
-          </g>
-          {/* scattered small stars */}
-          <g fill="#FFFFFF" opacity="0.5">
-            <circle cx="60" cy="180" r="2" />
-            <circle cx="230" cy="140" r="2.5" />
-            <circle cx="410" cy="200" r="2" />
-            <circle cx="300" cy="260" r="1.8" />
-            <circle cx="120" cy="300" r="2" />
-            <circle cx="430" cy="330" r="2.2" />
-            <circle cx="40" cy="380" r="1.8" />
-          </g>
-          {/* soft hill / cloud silhouette along the bottom */}
-          <path
-            d="M0 620 C 60 560, 140 560, 190 610 C 230 560, 300 560, 340 610 C 380 570, 450 575, 500 615 L500 900 L0 900 Z"
-            fill="#0A4A55" opacity="0.55"
-          />
-          <path
-            d="M0 700 C 80 650, 160 660, 210 700 C 260 655, 340 660, 390 705 C 430 675, 470 680, 500 705 L500 900 L0 900 Z"
-            fill="#083840" opacity="0.7"
-          />
-        </svg>
-
-        <div className="flex items-center gap-2.5 sm:gap-3 relative z-10 min-w-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/10 flex-shrink-0">
-            <Scissors className="text-white" size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-white font-black text-base sm:text-lg tracking-widest uppercase truncate">Smart Master</p>
-            <p className="text-white/50 text-[10px] sm:text-xs font-medium tracking-widest truncate">TAILORING MANAGEMENT</p>
+          <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-black transition-all ${language === 'en' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('ur')}
+              className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-black transition-all ${language === 'ur' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              اردو
+            </button>
           </div>
         </div>
 
-        <div className="hidden lg:block relative z-10 space-y-[clamp(0.75rem,3vh,2rem)]">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-            <KeyRound size={14} className="text-white/80" />
-            <span className="text-white/80 text-xs font-bold tracking-widest uppercase">Password Reset</span>
-          </div>
-          <h1 className="text-[clamp(1.75rem,5.5vh,3.75rem)] font-black text-white leading-[1.1] tracking-tighter">
-            Create<br/>
-            <span className="text-white/50">New</span><br/>
-            Password
-          </h1>
-          <p className="text-white/60 text-[clamp(0.8rem,2.2vh,1.125rem)] font-medium leading-relaxed max-w-sm">
-            Set your new password and log back into your account.
-          </p>
-        </div>
-
-        <p className="hidden lg:block text-white/30 text-sm font-medium relative z-10">
-          © {new Date().getFullYear()} Smart Master
-        </p>
-      </div>
-
-      {/* ── RIGHT FORM PANEL ── */}
-      <div className="flex-1 flex items-center justify-center p-[clamp(1rem,4vh,2rem)] px-[clamp(1.25rem,5vw,2rem)] bg-slate-50">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-[clamp(1rem,4vh,2rem)] my-[clamp(0.5rem,2vh,1rem)]"
-        >
-          {done ? (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="space-y-3">
-                <div className="w-14 h-14 bg-emerald-50 ring-8 ring-emerald-50/60 rounded-full flex items-center justify-center text-emerald-600">
-                  <CheckCircle2 size={26} />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">Password Reset Successful</h2>
-                <p className="text-slate-500 font-medium">You can now log in with your new password. Redirecting to the login page...</p>
+        {done ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="space-y-3">
+              <div className="w-14 h-14 bg-emerald-50 ring-8 ring-emerald-50/60 rounded-full flex items-center justify-center text-emerald-600">
+                <CheckCircle2 size={26} />
               </div>
-              <Link to="/login" className="primary-btn w-full py-4 sm:py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25">
-                {t('Go to Login', 'لاگ ان پر جائیں')} <ArrowRight size={20} />
-              </Link>
-            </motion.div>
-          ) : (
-            <>
-              <Link to="/login" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-primary transition-colors">
-                <ArrowLeft size={16} /> {t('Back to Login', 'لاگ ان پر واپس جائیں')}
-              </Link>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">{t('Password Reset Successful', 'پاس ورڈ کامیابی سے ری سیٹ ہو گیا')}</h2>
+              <p className="text-slate-500 font-medium">{t('You can now log in with your new password. Redirecting to the login page...', 'اب آپ اپنے نئے پاس ورڈ سے لاگ ان کر سکتے ہیں۔ لاگ ان پیج پر بھیجا جا رہا ہے...')}</p>
+            </div>
+            <Link to="/login" className="primary-btn w-full py-4 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-md shadow-primary/15">
+              {t('Go to Login', 'لاگ ان پر جائیں')} <ArrowRight size={20} />
+            </Link>
+          </motion.div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">{t('Set New Password', 'نیا پاس ورڈ سیٹ کریں')}</h2>
+              <p className="text-slate-500 font-medium text-sm sm:text-base break-words">
+                {email ? <>{t('Account:', 'اکاؤنٹ:')} <span className="font-black text-slate-700 break-all">{email}</span></> : t('Enter your new password', 'اپنا نیا پاس ورڈ درج کریں')}
+              </p>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-                <div className="space-y-2">
-                  <h2 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tighter">Set New Password</h2>
-                  <p className="text-slate-500 font-medium text-base sm:text-lg break-words">
-                    {email ? <>Account: <span className="font-black text-slate-700 break-all">{email}</span></> : 'Enter your new password'}
-                  </p>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                {t('New Password', 'نیا پاس ورڈ')}
+              </label>
+              <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
+                <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
+                  <Lock size={18} className="text-slate-400" />
                 </div>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="flex-1 min-w-0 px-4 py-3.5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                    New Password
-                  </label>
-                  <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                    <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
-                      <Lock size={18} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="flex-1 min-w-0 px-4 py-4 sm:py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                  </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                {t('Confirm Password', 'پاس ورڈ کی تصدیق کریں')}
+              </label>
+              <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
+                <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
+                  <Lock size={18} className="text-slate-400" />
                 </div>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="flex-1 min-w-0 px-4 py-3.5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                    Confirm Password
-                  </label>
-                  <div className="flex items-stretch border border-slate-200 rounded-xl overflow-hidden bg-white/50 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                    <div className="flex items-center justify-center px-3 sm:px-4 bg-slate-100/80 border-r border-slate-200 min-w-[44px] sm:min-w-[52px]">
-                      <Lock size={18} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="flex-1 min-w-0 px-4 py-4 sm:py-5 text-base bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+            {error && (
+              <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-bold">
+                <ShieldAlert size={18} className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
 
-                {error && (
-                  <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 px-4 py-3 sm:px-5 sm:py-4 rounded-xl text-sm font-bold">
-                    <ShieldAlert size={18} className="flex-shrink-0" />
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="primary-btn w-full py-4 sm:py-5 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-2xl shadow-primary/25 disabled:opacity-60"
-                >
-                  {loading ? 'Resetting...' : (
-                    <>Reset Password <ArrowRight size={20} /></>
-                  )}
-                </button>
-              </form>
-            </>
-          )}
-        </motion.div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="primary-btn w-full py-4 rounded-xl flex items-center justify-center gap-3 text-base font-black shadow-md shadow-primary/15 disabled:opacity-60"
+            >
+              {loading ? t('Resetting...', 'ری سیٹ ہو رہا ہے...') : (
+                <>{t('Reset Password', 'پاس ورڈ ری سیٹ کریں')} <ArrowRight size={20} /></>
+              )}
+            </button>
+          </form>
+        )}
       </div>
-    </div>
+    </AuthSplitCard>
   );
 };
 
